@@ -3,7 +3,7 @@ using RandomRecipes.Domain.Shared;
 
 namespace RandomRecipes.Domain.Services;
 
-internal interface ICsvParser<T> where T : IEntity
+public interface ICsvParser<T> where T : IEntity
 {
-	Task<Response<IEnumerable<T>>> Parse(string csvFilePath);
+	Task<Response<IEnumerable<T>>> ParseAsync(string csvFilePath);
 }
