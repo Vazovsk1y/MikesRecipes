@@ -31,11 +31,16 @@ public class DbInitializer : IDbInitializer
 		_logger.LogInformation("-----Start migration process------");
 		await _context.Database.MigrateAsync(cancellationToken).ConfigureAwait(false);
 		_logger.LogInformation("------Times spend [{timerElapsedTotalSeconds}]-------", timer.Elapsed.TotalSeconds);
+
+		await SeedDataAsync(cancellationToken);
 	}
 
-	public async Task SeedDataAsync(CancellationToken cancellationToken = default)
+	private async Task SeedDataAsync(CancellationToken cancellationToken = default)
 	{
-		await _context.Products.AddRangeAsync(_csvParser.Enumerate(SeedCsvFilePath), cancellationToken).ConfigureAwait(false);
-		await _context.SaveChangesAsync(cancellationToken);
+		if (!_context.Products.Any())
+		{
+			await _context.Products.AddRangeAsync(_csvParser.Enumerate(SeedCsvFilePath), cancellationToken).ConfigureAwait(false);
+			await _context.SaveChangesAsync(cancellationToken);
+		}
 	}
 }
