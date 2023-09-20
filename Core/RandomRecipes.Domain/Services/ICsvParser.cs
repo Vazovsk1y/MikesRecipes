@@ -5,5 +5,7 @@ namespace RandomRecipes.Domain.Services;
 
 public interface ICsvParser<T> where T : IEntity
 {
-	Task<Response<IEnumerable<T>>> ParseAsync(string csvFilePath);
+	IAsyncEnumerable<T> EnumerateAsync(string csvFilePath);
+
+	IEnumerable<T> Enumerate(string csvFilePath);
 }
