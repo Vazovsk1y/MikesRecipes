@@ -85,6 +85,7 @@ public class ProductCsvParser : ICsvParser<Product>
 #nullable enable
 
 	private const string DishesType = "Dishes";
+	private const string ConfectioneriesType = "Confectioneries";
 
 	public async IAsyncEnumerable<Product> EnumerateAsync(string csvFilePath)
 	{
@@ -95,15 +96,13 @@ public class ProductCsvParser : ICsvParser<Product>
 
 		await foreach (var item in csvReader.GetRecordsAsync<ProductItem>())
 		{
-			if (IsDish(item))
+			if (IsValid(item))
 			{
-				continue;
+				yield return new Product
+				{
+					Title = item.Name
+				};
 			}
-
-			yield return new Product
-			{
-				Title = item.Name
-			};
 		}
 	}
 
@@ -116,15 +115,13 @@ public class ProductCsvParser : ICsvParser<Product>
 
 		foreach (var item in csvReader.GetRecords<ProductItem>())
 		{
-			if (IsDish(item))
+			if (IsValid(item))
 			{
-				continue;
+				yield return new Product
+				{
+					Title = item.Name
+				};
 			}
-
-			yield return new Product
-			{
-				Title = item.Name
-			};
 		}
 	}
 
@@ -136,8 +133,8 @@ public class ProductCsvParser : ICsvParser<Product>
 		}
 	}
 
-	private static bool IsDish(ProductItem productItem)
+	private static bool IsValid(ProductItem productItem)
 	{
-		return productItem.FoodGroup == DishesType;
+		return productItem.FoodGroup != DishesType && productItem.FoodGroup != ConfectioneriesType;
 	}
 }
