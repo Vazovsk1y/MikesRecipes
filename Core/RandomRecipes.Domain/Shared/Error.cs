@@ -8,7 +8,7 @@ public record Error
 
 	public Error(string text)
 	{
-		ArgumentException.ThrowIfNullOrEmpty(text);
+		ArgumentNullException.ThrowIfNull(text);
 		Text = text;
 	}
 }
