@@ -2,5 +2,7 @@
 
 public interface IDbInitializer
 {
-	Task InitializeAsync();
+	Task InitializeAsync(CancellationToken cancellationToken = default);
+
+	Task SeedDataAsync(CancellationToken cancellationToken = default);
 }
