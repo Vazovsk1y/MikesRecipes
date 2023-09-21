@@ -9,7 +9,7 @@ public class RandomRecipesDbContext : DbContext, IApplicationDbContext
 {
 	public const string DatabaseName = "RandomRecipesDb";
 
-	public const string IngridientsTableName = "Ingridients";
+	public const string IngridientsTableName = "Ingredients";
 
 	public DbSet<Product> Products { get; set; }
 

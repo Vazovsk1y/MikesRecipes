@@ -12,7 +12,7 @@ using RandomRecipes.DAL;
 namespace RandomRecipes.DAL.Migrations
 {
     [DbContext(typeof(RandomRecipesDbContext))]
-    [Migration("20230920145807_Initial")]
+    [Migration("20230921074837_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -37,7 +37,7 @@ namespace RandomRecipes.DAL.Migrations
 
                     b.HasIndex("RecipeId");
 
-                    b.ToTable("Ingridients", (string)null);
+                    b.ToTable("Ingredients", (string)null);
                 });
 
             modelBuilder.Entity("RandomRecipes.Domain.Models.Product", b =>
@@ -106,7 +106,7 @@ namespace RandomRecipes.DAL.Migrations
 
                             b1.HasKey("IngredientProductId", "IngredientRecipeId");
 
-                            b1.ToTable("Ingridients");
+                            b1.ToTable("Ingredients");
 
                             b1.WithOwner()
                                 .HasForeignKey("IngredientProductId", "IngredientRecipeId");

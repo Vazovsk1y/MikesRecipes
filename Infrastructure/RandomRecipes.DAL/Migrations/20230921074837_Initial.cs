@@ -37,7 +37,7 @@ namespace RandomRecipes.DAL.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Ingridients",
+                name: "Ingredients",
                 columns: table => new
                 {
                     ProductId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
@@ -48,15 +48,15 @@ namespace RandomRecipes.DAL.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Ingridients", x => new { x.ProductId, x.RecipeId });
+                    table.PrimaryKey("PK_Ingredients", x => new { x.ProductId, x.RecipeId });
                     table.ForeignKey(
-                        name: "FK_Ingridients_Products_ProductId",
+                        name: "FK_Ingredients_Products_ProductId",
                         column: x => x.ProductId,
                         principalTable: "Products",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_Ingridients_Recipes_RecipeId",
+                        name: "FK_Ingredients_Recipes_RecipeId",
                         column: x => x.RecipeId,
                         principalTable: "Recipes",
                         principalColumn: "Id",
@@ -64,8 +64,8 @@ namespace RandomRecipes.DAL.Migrations
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_Ingridients_RecipeId",
-                table: "Ingridients",
+                name: "IX_Ingredients_RecipeId",
+                table: "Ingredients",
                 column: "RecipeId");
         }
 
@@ -73,7 +73,7 @@ namespace RandomRecipes.DAL.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "Ingridients");
+                name: "Ingredients");
 
             migrationBuilder.DropTable(
                 name: "Products");
