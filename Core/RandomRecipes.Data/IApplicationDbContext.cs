@@ -10,6 +10,8 @@ public interface IApplicationDbContext
 
 	DbSet<Recipe> Recipes { get; set; }
 
+	DbSet<Ingredient> Ingredients { get; set; }
+
 	DatabaseFacade Database { get; }
 
 	Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
