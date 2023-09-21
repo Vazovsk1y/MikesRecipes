@@ -1,6 +1,4 @@
-﻿using RandomRecipes.Domain.ValueObjects;
-
-namespace RandomRecipes.Domain.Models;
+﻿namespace RandomRecipes.Domain.Models;
 
 #nullable disable
 
@@ -13,6 +11,4 @@ public class Ingredient
 	public Product Product { get; set; }
 
 	public Recipe Recipe { get; set; }
-
-	public IngridientAmount RequiredAmount { get; set; }
 }

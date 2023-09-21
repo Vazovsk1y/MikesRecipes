@@ -8,7 +8,7 @@ public class Recipe : Entity<RecipeId>
 {
 	public string Title { get; set; }
 
-	public string Instruction { get; set; }
+	public string Url { get; set; }
 
 	public ICollection<Ingredient> Ingredients { get; set; } = new List<Ingredient>();
 
