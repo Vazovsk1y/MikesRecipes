@@ -3,7 +3,7 @@ using CsvHelper.Configuration.Attributes;
 using RandomRecipes.Domain.Models;
 using System.Globalization;
 
-namespace RandomRecipes.Domain.Services.Implementations;
+namespace RandomRecipes.Data.Services;
 
 public class ProductCsvParser : ICsvParser<Product>
 {

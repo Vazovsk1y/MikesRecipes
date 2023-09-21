@@ -1,7 +1,6 @@
 ﻿using RandomRecipes.Domain.Common;
-using RandomRecipes.Domain.Shared;
 
-namespace RandomRecipes.Domain.Services;
+namespace RandomRecipes.Data.Services;
 
 public interface ICsvParser<T> where T : IEntity
 {

@@ -1,8 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using RandomRecipes.Data;
+using RandomRecipes.Data.Services;
 using RandomRecipes.Domain.Models;
-using RandomRecipes.Domain.Services;
 using System.Diagnostics;
 
 namespace RandomRecipes.DAL;
