@@ -12,7 +12,7 @@ using RandomRecipes.DAL;
 namespace RandomRecipes.DAL.Migrations
 {
     [DbContext(typeof(RandomRecipesDbContext))]
-    [Migration("20230921074837_Initial")]
+    [Migration("20230921140900_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -37,7 +37,7 @@ namespace RandomRecipes.DAL.Migrations
 
                     b.HasIndex("RecipeId");
 
-                    b.ToTable("Ingredients", (string)null);
+                    b.ToTable("Ingredients");
                 });
 
             modelBuilder.Entity("RandomRecipes.Domain.Models.Product", b =>
@@ -59,11 +59,11 @@ namespace RandomRecipes.DAL.Migrations
                     b.Property<Guid>("Id")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<string>("Instruction")
+                    b.Property<string>("Title")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Title")
+                    b.Property<string>("Url")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -86,37 +86,9 @@ namespace RandomRecipes.DAL.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.OwnsOne("RandomRecipes.Domain.ValueObjects.IngridientAmount", "RequiredAmount", b1 =>
-                        {
-                            b1.Property<Guid>("IngredientProductId")
-                                .HasColumnType("uniqueidentifier");
-
-                            b1.Property<Guid>("IngredientRecipeId")
-                                .HasColumnType("uniqueidentifier");
-
-                            b1.Property<string>("AmountType")
-                                .IsRequired()
-                                .HasColumnType("nvarchar(max)");
-
-                            b1.Property<double>("Count")
-                                .HasColumnType("float");
-
-                            b1.Property<string>("ExtraInfo")
-                                .HasColumnType("nvarchar(max)");
-
-                            b1.HasKey("IngredientProductId", "IngredientRecipeId");
-
-                            b1.ToTable("Ingredients");
-
-                            b1.WithOwner()
-                                .HasForeignKey("IngredientProductId", "IngredientRecipeId");
-                        });
-
                     b.Navigation("Product");
 
                     b.Navigation("Recipe");
-
-                    b.Navigation("RequiredAmount");
                 });
 
             modelBuilder.Entity("RandomRecipes.Domain.Models.Recipe", b =>

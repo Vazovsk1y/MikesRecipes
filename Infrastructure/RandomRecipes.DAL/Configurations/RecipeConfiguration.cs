@@ -13,8 +13,9 @@ internal class RecipeConfiguration : IEntityTypeConfiguration<Recipe>
 		builder.Property(e => e.Id).HasConversion(e => e.Value, e => new RecipeId(e));
 
 		builder.Property(e => e.Title).IsRequired();
-		builder.Property(e => e.Instruction).IsRequired();
 
-		builder.HasMany(e => e.Ingredients);
+		builder.Property(e => e.Url).IsRequired();
+
+		builder.HasMany(e => e.Ingredients).WithOne(e => e.Recipe);
 	}
 }

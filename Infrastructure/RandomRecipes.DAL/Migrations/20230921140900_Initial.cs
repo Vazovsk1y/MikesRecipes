@@ -29,7 +29,7 @@ namespace RandomRecipes.DAL.Migrations
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     Title = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Instruction = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                    Url = table.Column<string>(type: "nvarchar(max)", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -41,10 +41,7 @@ namespace RandomRecipes.DAL.Migrations
                 columns: table => new
                 {
                     ProductId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    RecipeId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    RequiredAmount_Count = table.Column<double>(type: "float", nullable: true),
-                    RequiredAmount_AmountType = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    RequiredAmount_ExtraInfo = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                    RecipeId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
                 },
                 constraints: table =>
                 {

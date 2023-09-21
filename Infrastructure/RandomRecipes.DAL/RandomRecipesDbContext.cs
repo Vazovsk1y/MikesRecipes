@@ -9,11 +9,11 @@ public class RandomRecipesDbContext : DbContext, IApplicationDbContext
 {
 	public const string DatabaseName = "RandomRecipesDb";
 
-	public const string IngridientsTableName = "Ingredients";
-
 	public DbSet<Product> Products { get; set; }
 
 	public DbSet<Recipe> Recipes { get; set; }
+
+	public DbSet<Ingredient> Ingredients { get; set; }
 
 	public RandomRecipesDbContext(DbContextOptions<RandomRecipesDbContext> dbContextOptions) : base(dbContextOptions) { }
 
