@@ -12,7 +12,7 @@ using RandomRecipes.DAL;
 namespace RandomRecipes.DAL.Migrations
 {
     [DbContext(typeof(RandomRecipesDbContext))]
-    [Migration("20230921140900_Initial")]
+    [Migration("20230921153603_Initial")]
     partial class Initial
     {
         /// <inheritdoc />

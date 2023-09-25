@@ -16,6 +16,6 @@ internal class RecipeConfiguration : IEntityTypeConfiguration<Recipe>
 
 		builder.Property(e => e.Url).IsRequired();
 
-		builder.HasMany(e => e.Ingredients).WithOne(e => e.Recipe);
+		builder.HasMany(e => e.Ingredients).WithOne(e => e.Recipe).HasForeignKey(e => e.RecipeId);
 	}
 }

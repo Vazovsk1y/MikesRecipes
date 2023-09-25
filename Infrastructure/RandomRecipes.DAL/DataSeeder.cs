@@ -35,6 +35,7 @@ public class DataSeeder : IDataSeeder
 
 			text = text.Replace("None", "'По вкусу'");
 			var result = JsonConvert.DeserializeObject<Dictionary<string, string>>(text);
+
 			return result ?? new Dictionary<string, string>();
 		}
 
@@ -106,6 +107,11 @@ public class DataSeeder : IDataSeeder
 
 		foreach (var item in recipeItems)
 		{
+			if (item.Ingredients.Keys.Count == 0)
+			{
+				continue;
+			}
+
 			var recipe = new Recipe
 			{
 				Title = item.Name,

@@ -6,5 +6,5 @@ namespace RandomRecipes.Services;
 
 public interface IRecipeService
 {
-	Task<Response<RecipesSetDTO>> GetAppropriateAsync(IEnumerable<ProductId> includedProducts, int numberOfOtherProducts = 5);
+	Task<Response<RecipesSetDTO>> GetAppropriateAsync(IEnumerable<ProductId> includedProducts, int otherProductsCount = 5, CancellationToken cancellationToken = default);
 }
