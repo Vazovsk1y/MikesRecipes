@@ -12,7 +12,7 @@ internal class RecipeService(IApplicationDbContext dbContext) : IRecipeService
 {
 	private readonly IApplicationDbContext _dbContext = dbContext;
 
-	public async Task<Response<RecipesSetDTO>> GetAppropriateAsync(IEnumerable<ProductId> includedProducts, int otherProductsCount = 5, CancellationToken cancellationToken = default)
+	public async Task<Response<RecipesSetDTO>> GetAsync(IEnumerable<ProductId> includedProducts, int otherProductsCount = 5, CancellationToken cancellationToken = default)
 	{
 		#region --another implementations--
 
@@ -190,4 +190,3 @@ internal class RecipeService(IApplicationDbContext dbContext) : IRecipeService
 		#endregion
 	}
 }
-
