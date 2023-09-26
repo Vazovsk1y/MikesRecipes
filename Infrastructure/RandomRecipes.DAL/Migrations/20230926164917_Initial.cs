@@ -16,7 +16,7 @@ namespace RandomRecipes.DAL.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Title = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                    Title = table.Column<string>(type: "nvarchar(450)", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -64,6 +64,12 @@ namespace RandomRecipes.DAL.Migrations
                 name: "IX_Ingredients_RecipeId",
                 table: "Ingredients",
                 column: "RecipeId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Products_Title",
+                table: "Products",
+                column: "Title",
+                unique: true);
         }
 
         /// <inheritdoc />

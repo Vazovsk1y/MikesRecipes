@@ -12,7 +12,7 @@ using RandomRecipes.DAL;
 namespace RandomRecipes.DAL.Migrations
 {
     [DbContext(typeof(RandomRecipesDbContext))]
-    [Migration("20230921153603_Initial")]
+    [Migration("20230926164917_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -47,9 +47,12 @@ namespace RandomRecipes.DAL.Migrations
 
                     b.Property<string>("Title")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("Title")
+                        .IsUnique();
 
                     b.ToTable("Products");
                 });

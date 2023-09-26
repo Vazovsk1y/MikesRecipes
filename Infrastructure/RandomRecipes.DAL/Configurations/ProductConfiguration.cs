@@ -12,6 +12,12 @@ internal class ProductConfiguration : IEntityTypeConfiguration<Product>
 
 		builder.Property(e => e.Id).HasConversion(e => e.Value, e => new ProductId(e));
 
-		builder.Property(e => e.Title).IsRequired();
+		builder
+			.Property(e => e.Title)
+			.IsRequired();
+
+		builder
+			.HasIndex(e => e.Title)
+			.IsUnique();
 	}
 }
