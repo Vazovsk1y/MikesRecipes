@@ -1,8 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using RandomRecipes.Data;
-using RandomRecipes.Domain.Shared;
-using RandomRecipes.Services;
-using RandomRecipes.Services.DTOs;
+using MikesRecipes.Data;
+using MikesRecipes.Domain.Shared;
+using MikesRecipes.Services.DTOs;
 
 namespace MikesRecipes.Services.Implementations;
 

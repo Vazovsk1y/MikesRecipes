@@ -12,8 +12,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Application\RandomRecipes.Services\RandomRecipes.Services.csproj" />
-    <ProjectReference Include="..\..\Core\RandomRecipes.Data\RandomRecipes.Data.csproj" />
+    <ProjectReference Include="..\..\Application\MikesRecipes.Services\MikesRecipes.Services.csproj" />
+    <ProjectReference Include="..\..\Core\MikesRecipes.Data\MikesRecipes.Data.csproj" />
   </ItemGroup>
 
 </Project>

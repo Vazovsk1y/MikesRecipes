@@ -1,9 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using RandomRecipes.Data;
-using RandomRecipes.Domain.Models;
-using RandomRecipes.Domain.Shared;
-using RandomRecipes.Services;
-using RandomRecipes.Services.DTOs;
+using MikesRecipes.Data;
+using MikesRecipes.Domain.Models;
+using MikesRecipes.Domain.Shared;
+using MikesRecipes.Services;
+using MikesRecipes.Services.DTOs;
 using System.Data;
 
 namespace MikesRecipes.Services.Implementations;
