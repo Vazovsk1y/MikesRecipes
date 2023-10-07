@@ -21,6 +21,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MikesRecipes.Services", "Ap
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MikesRecipes.DAL", "Infrastructure\MikesRecipes.DAL\MikesRecipes.DAL.csproj", "{D895F10F-82B1-4915-AE55-889E89122EEF}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Presentation", "Presentation", "{834F4494-4F77-49D3-8086-CB73E5AA9B23}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MikesRecipes.Web", "Presentation\MikesRecipes.Web\MikesRecipes.Web.csproj", "{F2E36658-77F3-4480-BD33-CCEBEE694A6E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -51,6 +55,10 @@ Global
 		{D895F10F-82B1-4915-AE55-889E89122EEF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D895F10F-82B1-4915-AE55-889E89122EEF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D895F10F-82B1-4915-AE55-889E89122EEF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F2E36658-77F3-4480-BD33-CCEBEE694A6E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F2E36658-77F3-4480-BD33-CCEBEE694A6E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F2E36658-77F3-4480-BD33-CCEBEE694A6E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F2E36658-77F3-4480-BD33-CCEBEE694A6E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -61,6 +69,7 @@ Global
 		{46BC67E8-A27B-4853-A02D-4186BEB3E203} = {7E935C53-7029-461B-80BE-067195D16301}
 		{0F9D9746-7929-4D9D-BFBA-1CF906929460} = {4AB1D9AA-290D-46D6-89DB-C88EBCF80598}
 		{D895F10F-82B1-4915-AE55-889E89122EEF} = {48288F8B-5EDB-453D-B361-2C8C77C5565C}
+		{F2E36658-77F3-4480-BD33-CCEBEE694A6E} = {834F4494-4F77-49D3-8086-CB73E5AA9B23}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {B4552B61-4B95-4CC2-ABA4-7E13BA2E3E8E}

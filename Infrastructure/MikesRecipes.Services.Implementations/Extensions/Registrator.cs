@@ -4,7 +4,7 @@ namespace MikesRecipes.Services.Implementations.Extensions;
 
 public static class Registrator
 {
-    public static IServiceCollection AddServices(this IServiceCollection services)
+    public static IServiceCollection AddAppServices(this IServiceCollection services)
     {
         services.AddScoped<IRecipeService, RecipeService>();
         services.AddScoped<IProductService, ProductService>();
