@@ -1,10 +1,71 @@
 ﻿@page
 @model IndexModel
 @{
-    ViewData["Title"] = "Home page";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://docs.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
-</div>
+<form method="post">
+	@Html.AntiForgeryToken()
+	<input type="text" id="inputText" placeholder="Product title" />
+</form>
+
+<ul id="selectedProductsList"></ul>
+
+<form id="searchRecipesForm" method="post" asp-page="Recipes/Index" asp-page-handler="BySelectedProducts">
+	<input type="hidden" id="productsIdsRow" name="productsIdsRow"/>
+	<button id="findRecipes" type="submit">Найти рецепты</button>
+</form>
+
+@section Scripts{
+	<script src="https://ajax.aspnetcdn.com/ajax/jQuery/jquery-1.10.0.min.js"></script>
+	<script src="https://ajax.aspnetcdn.com/ajax/jquery.ui/1.9.2/jquery-ui.min.js" type="text/javascript"></script>
+	<link href="https://ajax.aspnetcdn.com/ajax/jquery.ui/1.9.2/themes/blitzer/jquery-ui.css" rel="Stylesheet" type="text/css" />
+	<script type="text/javascript">
+		$(function () {
+			var selectedProductsIds = [];
+
+			$("#inputText").autocomplete({
+				select: function (e, i) {
+					var selectedProductTitle = i.item.value.title;
+					$("#selectedProductsList").append("<li>" + selectedProductTitle + "</li>");
+
+					var selectedProductId = i.item.value.productId.value;
+					selectedProductsIds.push(selectedProductId);
+
+					$("#inputText").val("");
+
+					return false;
+				},
+				source: function (request, response) {
+					$.ajax({
+						url: '/Index?handler=ProductsAutoComplete',
+						beforeSend: function (xhr) {
+							xhr.setRequestHeader("XSRF-TOKEN",
+								$('input:hidden[name="__RequestVerificationToken"]').val());
+						},
+						data: { "productTitlePrefix": request.term },
+						type: "POST",
+						success: function (data) {
+							response($.map(data, function (item) {
+								return {
+									label: item.title,
+									value: item
+								};
+							}))
+						},
+					});
+				},
+				position: { collision: "flip" },
+				minLength: 1
+			});
+
+			$("#findRecipes").on('click', function () {
+				$("#productsIdsRow").val(selectedProductsIds.join(','));
+			});
+		});
+	</script>
+ }
+
+
+
+
+

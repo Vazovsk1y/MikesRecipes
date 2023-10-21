@@ -150,14 +150,18 @@ internal class RecipeService(IApplicationDbContext dbContext) : IRecipeService
 		#region --Sql #2 +-2.5 seconds 2 - products, 5 - numberOfOtherProducts--
 
 		var includedProductsIds = includedProducts.ToList();
-		string productsString = string.Join(",", includedProductsIds.Select(e => $"'{e.Value}'"));
+		if (!includedProductsIds.Any())
+		{
+			return Response.Failure<RecipesSetDTO>(new Error("There is no any product."));
+		}
 
+		string productsIdsRow = string.Join(",", includedProductsIds.Select(e => $"'{e.Value}'"));
 		string query = $@"
 		           SELECT [r].[{nameof(Recipe.Id)}]
 		           FROM [{nameof(_dbContext.Products)}] AS [p]
 		           INNER JOIN [{nameof(_dbContext.Ingredients)}] AS [i] ON [p].[{nameof(Product.Id)}] = [i].[{nameof(Ingredient.ProductId)}]
 		           INNER JOIN [{nameof(_dbContext.Recipes)}] AS [r] ON [i].[{nameof(Ingredient.RecipeId)}] = [r].[{nameof(Recipe.Id)}]
-		           WHERE [p].[{nameof(Product.Id)}] IN ({productsString})
+		           WHERE [p].[{nameof(Product.Id)}] IN ({productsIdsRow})
 		           GROUP BY [r].[{nameof(Recipe.Id)}]
 		           HAVING COUNT(DISTINCT ([i].[{nameof(Ingredient.ProductId)}])) = {includedProductsIds.Count} AND
 		               (

@@ -7,6 +7,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorPages();
 builder.Services.AddAppServices();
 builder.Services.AddDAL(builder.Configuration);
+builder.Services.AddAntiforgery(o => o.HeaderName = "XSRF-TOKEN");
 
 var app = builder.Build();
 
