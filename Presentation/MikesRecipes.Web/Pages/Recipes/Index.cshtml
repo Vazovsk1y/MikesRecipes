@@ -16,3 +16,23 @@
 		}
 	}
 </ul>
+
+@{
+	var prevDisabled = Model.RecipesPage is { HasPreviousPage: false } ? "disabled" : string.Empty;
+	var nextDisabled = Model.RecipesPage is { HasNextPage: false } ? "disabled" : string.Empty;
+}
+
+<a asp-page="./Index"
+   asp-route-pageIndex="@(Model.RecipesPage?.PageIndex - 1)"
+   class="btn btn-primary @prevDisabled">
+	Previous
+</a>
+
+<a asp-page="./Index"
+   asp-route-pageIndex="@(Model.RecipesPage?.PageIndex + 1)"
+   class="btn btn-primary @nextDisabled">
+	Next
+</a>
+
+<p>Page number @Model.RecipesPage?.PageIndex</p>
+<p>Total pages @Model.RecipesPage?.TotalPages</p>

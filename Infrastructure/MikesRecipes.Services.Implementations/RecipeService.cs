@@ -2,8 +2,8 @@
 using MikesRecipes.Data;
 using MikesRecipes.Domain.Models;
 using MikesRecipes.Domain.Shared;
-using MikesRecipes.Services;
 using MikesRecipes.Services.DTOs;
+using MikesRecipes.Services.DTOs.Common;
 using System.Data;
 
 namespace MikesRecipes.Services.Implementations;
@@ -12,7 +12,7 @@ internal class RecipeService(IApplicationDbContext dbContext) : IRecipeService
 {
 	private readonly IApplicationDbContext _dbContext = dbContext;
 
-	public async Task<Response<RecipesSetDTO>> GetAsync(IEnumerable<ProductId> includedProducts, int otherProductsCount = 5, CancellationToken cancellationToken = default)
+	public async Task<Response<RecipesPage>> GetByIncludedProductsAsync(IEnumerable<ProductId> includedProducts, int otherProductsCount = 5, PagingOptions? pagingOptions = null, CancellationToken cancellationToken = default)
 	{
 		#region --another implementations--
 
@@ -152,7 +152,7 @@ internal class RecipeService(IApplicationDbContext dbContext) : IRecipeService
 		var includedProductsIds = includedProducts.ToList();
 		if (!includedProductsIds.Any())
 		{
-			return Response.Failure<RecipesSetDTO>(new Error("There is no any product."));
+			return Response.Failure<RecipesPage>(new Error("There is no any included product."));
 		}
 
 		string productsIdsRow = string.Join(",", includedProductsIds.Select(e => $"'{e.Value}'"));
@@ -175,11 +175,21 @@ internal class RecipeService(IApplicationDbContext dbContext) : IRecipeService
 			.Select(e => e.Id)
 			.ToListAsync(cancellationToken);
 
+		int totalItemsCount = result.Count;
+		int pageIndex = pagingOptions is null ? 1 : pagingOptions.PageIndex;
+		int pageSize = pagingOptions is null ? totalItemsCount : pagingOptions.PageSize;
+		if (pageSize > totalItemsCount)
+		{
+			pageSize = totalItemsCount;
+		}
+
 		var recipesDtos = await _dbContext.Recipes
 			.AsNoTracking()
 			.Include(r => r.Ingredients)
 			.ThenInclude(i => i.Product)
 			.Where(r => result.Contains(r.Id))
+			.Skip((pageIndex - 1) * pageSize)
+			.Take(pageSize)
 			.Select(e => new RecipeDTO
 				(
 					e.Id,
@@ -189,8 +199,36 @@ internal class RecipeService(IApplicationDbContext dbContext) : IRecipeService
 				))
 			.ToListAsync(cancellationToken);
 
-		return Response.Success(new RecipesSetDTO(recipesDtos));
+		return Response.Success(new RecipesPage(recipesDtos, totalItemsCount, pageIndex, pageSize));
 
 		#endregion
+	}
+
+	public async Task<Response<RecipesPage>> GetAsync(PagingOptions? pagingOptions = null, CancellationToken cancellationToken = default)
+	{
+		int totalItemsCount = _dbContext.Recipes.Count();
+		int pageIndex = pagingOptions is null ? 1 : pagingOptions.PageIndex;
+		int pageSize = pagingOptions is null ? totalItemsCount : pagingOptions.PageSize;
+		if (pageSize > totalItemsCount)
+		{
+			pageSize = totalItemsCount;
+		}
+
+		var recipesDtos = await _dbContext.Recipes
+			.AsNoTracking()
+			.Include(r => r.Ingredients)
+			.ThenInclude(i => i.Product)
+			.Skip((pageIndex - 1) * pageSize)
+			.Take(pageSize)
+			.Select(e => new RecipeDTO
+				(
+					e.Id,
+					e.Title,
+					e.Url,
+					e.Ingredients.Select(ing => new IngredientDTO(ing.RecipeId, ing.ProductId, ing.Product.Title)).ToList()
+				))
+			.ToListAsync(cancellationToken);
+
+		return Response.Success(new RecipesPage(recipesDtos, totalItemsCount, pageIndex, pageSize));
 	}
 }

@@ -3,24 +3,33 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using MikesRecipes.Domain.Models;
 using MikesRecipes.Services;
 using MikesRecipes.Services.DTOs;
+using MikesRecipes.Services.DTOs.Common;
 
 namespace MikesRecipes.Web.Pages.Recipes
 {
     public class IndexModel : PageModel
     {
         private readonly IRecipeService _recipeService;
+		private readonly int DefaultPageSize;
 
-		public IndexModel(IRecipeService recipeService)
+		public IndexModel(IRecipeService recipeService, IConfiguration configuration)
 		{
+			DefaultPageSize = configuration.GetValue<int>(nameof(DefaultPageSize));
 			_recipeService = recipeService;
 		}
 
-		public IEnumerable<RecipeDTO>? Recipes { get; set; }
+		public RecipesPage? RecipesPage { get; set; }
 
-        public void OnGet() 
-        {
+		public IEnumerable<RecipeDTO>? Recipes => RecipesPage?.Items;
 
-        }
+		public async Task OnGetAsync(int pageIndex = 1)
+		{
+			var result = await _recipeService.GetAsync(new PagingOptions(pageIndex, DefaultPageSize));
+			if (result.IsSuccess)
+			{
+				RecipesPage = result.Value;
+			}
+		}
 
 		public async Task<IActionResult> OnPostBySelectedProductsAsync(string productsIdsRow)
 		{
@@ -37,10 +46,10 @@ namespace MikesRecipes.Web.Pages.Recipes
 					associatedProductsIds.Add(new ProductId(value));
                 }
 
-                var result = await _recipeService.GetAsync(associatedProductsIds);
+                var result = await _recipeService.GetByIncludedProductsAsync(associatedProductsIds);
 				if (result.IsSuccess)
 				{
-					Recipes = result.Value.Recipes;
+					RecipesPage = result.Value;
 				}
 			}
 			return Page();
