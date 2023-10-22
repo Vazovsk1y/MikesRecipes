@@ -25,11 +25,19 @@
 
 			$("#inputText").autocomplete({
 				select: function (e, i) {
-					var selectedProductTitle = i.item.value.title;
-					$("#selectedProductsList").append("<li>" + selectedProductTitle + "</li>");
-
 					var selectedProductId = i.item.value.productId.value;
+
+					if (selectedProductsIds.indexOf(selectedProductId) !== -1)
+					{
+						return false;
+					}
+
 					selectedProductsIds.push(selectedProductId);
+
+					var selectedProductTitle = i.item.value.title;
+
+					$("#selectedProductsList").append("<li id='" + selectedProductId + "'>" + selectedProductTitle + "<span class='delete-product' data-productid='" + selectedProductId + "' style='cursor:pointer; margin-left: 5px;'>&times;</span></li>");
+
 
 					$("#inputText").val("");
 
@@ -60,6 +68,18 @@
 
 			$("#findRecipes").on('click', function () {
 				$("#productsIdsRow").val(selectedProductsIds.join(','));
+			});
+
+			$("#selectedProductsList").on('click', '.delete-product', function () {
+				var productIdToRemove = $(this).data('productid');
+
+				console.log("Id to remove: " + productIdToRemove);
+
+				console.log("Ids count before deleting: " + selectedProductsIds.length);
+				selectedProductsIds = selectedProductsIds.filter(id => id !== productIdToRemove);
+				console.log("Ids count after deleting: " + selectedProductsIds.length);
+
+				$(this).parent().remove();
 			});
 		});
 	</script>
