@@ -12,7 +12,7 @@
 
 <form id="searchRecipesForm" method="post" asp-page="Recipes/Index" asp-page-handler="BySelectedProducts">
 	<input type="hidden" id="productsIdsRow" name="productsIdsRow"/>
-	<button id="findRecipes" type="submit">Найти рецепты</button>
+	<button id="findRecipes" type="submit" disabled>Найти рецепты</button>
 </form>
 
 @section Scripts{
@@ -38,8 +38,9 @@
 
 					$("#selectedProductsList").append("<li id='" + selectedProductId + "'>" + selectedProductTitle + "<span class='delete-product' data-productid='" + selectedProductId + "' style='cursor:pointer; margin-left: 5px;'>&times;</span></li>");
 
-
 					$("#inputText").val("");
+
+					updateFindRecipesButtonState();
 
 					return false;
 				},
@@ -80,7 +81,17 @@
 				console.log("Ids count after deleting: " + selectedProductsIds.length);
 
 				$(this).parent().remove();
+
+				updateFindRecipesButtonState();
 			});
+
+			function updateFindRecipesButtonState() {
+				if (selectedProductsIds.length > 0) {
+					$("#findRecipes").prop('disabled', false);
+				} else {
+					$("#findRecipes").prop('disabled', true);
+				}
+			}
 		});
 	</script>
  }
