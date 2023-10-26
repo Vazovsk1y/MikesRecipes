@@ -2,7 +2,9 @@
 
 public interface IPage<T>
 {
-	IReadOnlyCollection<T> Items { get; }
+	IReadOnlyCollection<T> CurrentItems { get; }
+
+	int TotalItemsCount { get; }
 	int PageIndex { get; }
 	int TotalPages { get; }
 	bool HasNextPage { get; }

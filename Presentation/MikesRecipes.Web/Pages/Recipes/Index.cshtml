@@ -4,7 +4,7 @@
 	ViewData["Title"] = "Recipes";
 }
 
-<h2>Найдено рецептов: @Model.Recipes.Count()</h2>
+<h2>Найдено рецептов: @Model.RecipesPage?.TotalItemsCount</h2>
 <ul>
 	@if (Model.Recipes is not null)
 	{
@@ -20,19 +20,42 @@
 @{
 	var prevDisabled = Model.RecipesPage is { HasPreviousPage: false } ? "disabled" : string.Empty;
 	var nextDisabled = Model.RecipesPage is { HasNextPage: false } ? "disabled" : string.Empty;
+	var previousPageIndex = Model.RecipesPage?.PageIndex - 1;
+	var nextPageIndex = Model.RecipesPage?.PageIndex + 1;
 }
 
-<a asp-page="./Index"
-   asp-route-pageIndex="@(Model.RecipesPage?.PageIndex - 1)"
-   class="btn btn-primary @prevDisabled">
-	Previous
-</a>
+@if (!string.IsNullOrWhiteSpace(Model.Input.ProductsIdsRow))
+{
+	<div class="d-flex">
+		<form method="post" asp-page-handler="BySelectedProducts">
+			<input type="hidden" value="@Model.Input.ProductsIdsRow" name="productsIdsRow" />
+			<input type="hidden" value="@Model.Input.OtherProductsCount" name="otherProductsCount" />
+			<input type="hidden" value="@previousPageIndex" name="pageIndex" />
+			<button id="previous" type="submit" class="btn btn-primary @prevDisabled">Previous</button>
+		</form>
 
-<a asp-page="./Index"
-   asp-route-pageIndex="@(Model.RecipesPage?.PageIndex + 1)"
-   class="btn btn-primary @nextDisabled">
-	Next
-</a>
+		<form method="post" asp-page-handler="BySelectedProducts">
+			<input type="hidden" value="@Model.Input.ProductsIdsRow" name="productsIdsRow" />
+			<input type="hidden" value="@Model.Input.OtherProductsCount" name="otherProductsCount" />
+			<input type="hidden" value="@nextPageIndex" name="pageIndex" />
+			<button id="next" type="submit" class="btn btn-primary @nextDisabled">Next</button>
+		</form>
+	</div>
+}
+else
+{
+	<a asp-page="./Index"
+	   asp-route-pageIndex="@previousPageIndex"
+	   class="btn btn-primary @prevDisabled">
+		Previous
+	</a>
+
+	<a asp-page="./Index"
+	   asp-route-pageIndex="@nextPageIndex"
+	   class="btn btn-primary @nextDisabled">
+		Next
+	</a>
+}
 
 <p>Page number @Model.RecipesPage?.PageIndex</p>
 <p>Total pages @Model.RecipesPage?.TotalPages</p>

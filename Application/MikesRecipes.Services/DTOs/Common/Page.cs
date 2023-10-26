@@ -2,10 +2,12 @@
 
 public abstract record Page<T> : IPage<T>
 {
-	public IReadOnlyCollection<T> Items { get; }
+	public IReadOnlyCollection<T> CurrentItems { get; }
 	public int PageIndex { get; }
 
 	public int TotalPages { get; }
+
+	public int TotalItemsCount { get; }
 
 	public bool HasNextPage => PageIndex < TotalPages;
 
@@ -17,9 +19,10 @@ public abstract record Page<T> : IPage<T>
 		int pageSize)
 	{
 		Validate(totalItemsCount, pageIndex, pageSize);
-		PageIndex = pageIndex;
+		PageIndex = totalItemsCount == 0 ? totalItemsCount : pageIndex;
 		TotalPages = totalItemsCount == 0 ? totalItemsCount : (int)Math.Ceiling(totalItemsCount / (double)pageSize);
-		Items = items;
+		TotalItemsCount = totalItemsCount;
+		CurrentItems = items;
 	}
 
 	private static void Validate(int totalItemsCount,  int pageIndex, int pageSize)

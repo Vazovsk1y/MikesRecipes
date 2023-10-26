@@ -20,7 +20,10 @@ public class IndexModel : PageModel
 
 	public RecipesPage? RecipesPage { get; set; }
 
-	public IEnumerable<RecipeDTO> Recipes => RecipesPage?.Items ?? Enumerable.Empty<RecipeDTO>();
+	public IEnumerable<RecipeDTO> Recipes => RecipesPage?.CurrentItems ?? Enumerable.Empty<RecipeDTO>();
+
+	[BindProperty]
+	public InputModel Input { get; set; } = new InputModel();
 
 	public async Task OnGetAsync(int pageIndex = 1)
 	{
@@ -31,12 +34,13 @@ public class IndexModel : PageModel
 		}
 	}
 
-	public async Task<IActionResult> OnPostBySelectedProductsAsync(string productsIdsRow, int otherProductsCount)
+	public async Task<IActionResult> OnPostBySelectedProductsAsync(InputModel input)
 	{
-		if (!string.IsNullOrWhiteSpace(productsIdsRow))
+		Input = input;
+		if (!string.IsNullOrWhiteSpace(Input.ProductsIdsRow))
 		{
 			var associatedProductsIds = new List<ProductId>();
-			foreach (var item in productsIdsRow.Split(',', StringSplitOptions.RemoveEmptyEntries))
+			foreach (var item in Input.ProductsIdsRow.Split(',', StringSplitOptions.RemoveEmptyEntries))
 			{
 				if (!Guid.TryParse(item, out var value))
 				{
@@ -46,12 +50,21 @@ public class IndexModel : PageModel
 				associatedProductsIds.Add(new ProductId(value));
 			}
 
-			var result = await _recipeService.GetByIncludedProductsAsync(associatedProductsIds, otherProductsCount);
+			var result = await _recipeService.GetByIncludedProductsAsync(associatedProductsIds, Input.OtherProductsCount, new PagingOptions(Input.PageIndex, DefaultPageSize));
 			if (result.IsSuccess)
 			{
 				RecipesPage = result.Value;
 			}
 		}
 		return Page();
+	}
+
+	public class InputModel
+	{
+		public string? ProductsIdsRow { get; set; }
+
+		public int OtherProductsCount { get; set; }
+
+		public int PageIndex { get; set; }
 	}
 }
