@@ -12,6 +12,7 @@
 
 <form id="searchRecipesForm" method="post" asp-page="Recipes/Index" asp-page-handler="BySelectedProducts">
 	<input type="hidden" id="productsIdsRow" name="productsIdsRow"/>
+	<input type="number" name="otherProductsCount" value="5" />
 	<button id="findRecipes" type="submit" disabled>Найти рецепты</button>
 </form>
 

@@ -4,7 +4,7 @@
 	ViewData["Title"] = "Recipes";
 }
 
-<h2>Найдено рецептов: @Model.Recipes?.Count()</h2>
+<h2>Найдено рецептов: @Model.Recipes.Count()</h2>
 <ul>
 	@if (Model.Recipes is not null)
 	{

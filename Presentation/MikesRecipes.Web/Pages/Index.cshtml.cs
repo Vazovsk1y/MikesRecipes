@@ -10,9 +10,6 @@ public class IndexModel : PageModel
     private readonly ILogger<IndexModel> _logger;
     private readonly IProductService _productService;
 
-    [BindProperty]
-    public string? ProductsIdsRow { get; set; }
-
     public IndexModel(
         ILogger<IndexModel> logger,
         IProductService productService)
@@ -38,3 +35,4 @@ public class IndexModel : PageModel
         return Page();
     }
 }
+
