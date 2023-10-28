@@ -10,7 +10,7 @@ using MikesRecipes.DAL;
 
 namespace MikesRecipes.DAL.Migrations
 {
-    [DbContext(typeof(RandomRecipesDbContext))]
+    [DbContext(typeof(MikesRecipesDbContext))]
     partial class RandomRecipesDbContextModelSnapshot : ModelSnapshot
     {
         protected override void BuildModel(ModelBuilder modelBuilder)

@@ -11,7 +11,7 @@ using MikesRecipes.DAL;
 
 namespace MikesRecipes.DAL.Migrations
 {
-    [DbContext(typeof(RandomRecipesDbContext))]
+    [DbContext(typeof(MikesRecipesDbContext))]
     [Migration("20230926164917_Initial")]
     partial class Initial
     {

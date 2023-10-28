@@ -11,7 +11,7 @@ public static class Registrator
 	{
 		services
 			.AddScoped<IDbInitializer, DbInitializer>()
-			.AddDbContext<IApplicationDbContext, RandomRecipesDbContext>(e => e.UseSqlServer(configuration.GetConnectionString("Default")))
+			.AddDbContext<IApplicationDbContext, MikesRecipesDbContext>(e => e.UseSqlServer(configuration.GetConnectionString("Default")))
 			.AddScoped<IDataSeeder, DataSeeder>();
 			;
 
