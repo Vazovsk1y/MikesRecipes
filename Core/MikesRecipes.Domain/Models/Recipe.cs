@@ -10,6 +10,8 @@ public class Recipe : Entity<RecipeId>
 
 	public string Url { get; set; }
 
+	public int IngredientsCount { get; set; }
+
 	public ICollection<Ingredient> Ingredients { get; set; } = new List<Ingredient>();
 
 	public Recipe() : base() { }

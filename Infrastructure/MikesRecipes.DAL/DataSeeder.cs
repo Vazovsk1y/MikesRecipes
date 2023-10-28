@@ -113,7 +113,8 @@ public class DataSeeder : IDataSeeder
 				.Where(e => item.Ingredients.Keys.Contains(e.Title, StringComparer.OrdinalIgnoreCase))
 				.Select(e => new Ingredient { ProductId = e.Id, RecipeId = recipe.Id });
 
-			if (item.Ingredients.Count != recipeIngredients.Count())
+			recipe.IngredientsCount = recipeIngredients.Count();
+			if (item.Ingredients.Count != recipe.IngredientsCount)
 			{
 				throw new InvalidDataException("Actual recipe ingredient count is not equal to recipeItem ingredient count.");
 			}

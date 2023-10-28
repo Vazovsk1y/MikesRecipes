@@ -11,7 +11,7 @@ using MikesRecipes.DAL;
 namespace MikesRecipes.DAL.Migrations
 {
     [DbContext(typeof(MikesRecipesDbContext))]
-    partial class RandomRecipesDbContextModelSnapshot : ModelSnapshot
+    partial class MikesRecipesDbContextModelSnapshot : ModelSnapshot
     {
         protected override void BuildModel(ModelBuilder modelBuilder)
         {
@@ -22,7 +22,7 @@ namespace MikesRecipes.DAL.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("RandomRecipes.Domain.Models.Ingredient", b =>
+            modelBuilder.Entity("MikesRecipes.Domain.Models.Ingredient", b =>
                 {
                     b.Property<Guid>("ProductId")
                         .HasColumnType("uniqueidentifier");
@@ -37,7 +37,7 @@ namespace MikesRecipes.DAL.Migrations
                     b.ToTable("Ingredients");
                 });
 
-            modelBuilder.Entity("RandomRecipes.Domain.Models.Product", b =>
+            modelBuilder.Entity("MikesRecipes.Domain.Models.Product", b =>
                 {
                     b.Property<Guid>("Id")
                         .HasColumnType("uniqueidentifier");
@@ -54,10 +54,13 @@ namespace MikesRecipes.DAL.Migrations
                     b.ToTable("Products");
                 });
 
-            modelBuilder.Entity("RandomRecipes.Domain.Models.Recipe", b =>
+            modelBuilder.Entity("MikesRecipes.Domain.Models.Recipe", b =>
                 {
                     b.Property<Guid>("Id")
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("IngredientsCount")
+                        .HasColumnType("int");
 
                     b.Property<string>("Title")
                         .IsRequired()
@@ -72,15 +75,15 @@ namespace MikesRecipes.DAL.Migrations
                     b.ToTable("Recipes");
                 });
 
-            modelBuilder.Entity("RandomRecipes.Domain.Models.Ingredient", b =>
+            modelBuilder.Entity("MikesRecipes.Domain.Models.Ingredient", b =>
                 {
-                    b.HasOne("RandomRecipes.Domain.Models.Product", "Product")
+                    b.HasOne("MikesRecipes.Domain.Models.Product", "Product")
                         .WithMany()
                         .HasForeignKey("ProductId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("RandomRecipes.Domain.Models.Recipe", "Recipe")
+                    b.HasOne("MikesRecipes.Domain.Models.Recipe", "Recipe")
                         .WithMany("Ingredients")
                         .HasForeignKey("RecipeId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -91,7 +94,7 @@ namespace MikesRecipes.DAL.Migrations
                     b.Navigation("Recipe");
                 });
 
-            modelBuilder.Entity("RandomRecipes.Domain.Models.Recipe", b =>
+            modelBuilder.Entity("MikesRecipes.Domain.Models.Recipe", b =>
                 {
                     b.Navigation("Ingredients");
                 });
