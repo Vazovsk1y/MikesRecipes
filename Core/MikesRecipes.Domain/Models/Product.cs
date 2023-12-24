@@ -6,7 +6,7 @@ namespace MikesRecipes.Domain.Models;
 
 public class Product : Entity<ProductId>
 {
-	public string Title { get; set; }
+	public required string Title { get; set; }
 
 	public Product() : base() { }
 }

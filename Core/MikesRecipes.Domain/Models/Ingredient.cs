@@ -4,9 +4,9 @@
 
 public class Ingredient 
 {
-	public ProductId ProductId { get; init; }
+	public required ProductId ProductId { get; init; }
 
-	public RecipeId RecipeId { get; init; }
+	public required RecipeId RecipeId { get; init; }
 
 	public Product Product { get; set; }
 

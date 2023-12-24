@@ -1,6 +1,6 @@
 using MikesRecipes.Services.Implementations.Extensions;
-using MikesRecipes.DAL.Extensions;
-using MikesRecipes.Data;
+using MikesRecipes.DAL;
+using MikesRecipes.Web.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -23,14 +23,7 @@ app.UseRouting();
 app.UseAuthorization();
 app.MapRazorPages();
 
-var scope = app.Services.CreateScope();
-var dbInitializer = scope.ServiceProvider.GetRequiredService<IDbInitializer>();
-await dbInitializer.InitializeAsync();
-if (app.Environment.IsDevelopment())
-{
-	var dataSeeder = scope.ServiceProvider.GetRequiredService<IDataSeeder>();
-	await dataSeeder.SeedDataAsync();
-}
-scope.Dispose();
+app.MigrateDatabase();
+app.SeedDatabase();
 
 app.Run();

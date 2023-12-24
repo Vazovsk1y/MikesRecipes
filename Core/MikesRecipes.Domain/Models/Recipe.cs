@@ -6,9 +6,9 @@ namespace MikesRecipes.Domain.Models;
 
 public class Recipe : Entity<RecipeId>
 {
-	public string Title { get; set; }
+	public required string Title { get; set; }
 
-	public string Url { get; set; }
+	public required string Url { get; set; }
 
 	public int IngredientsCount { get; set; }
 

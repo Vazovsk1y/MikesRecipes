@@ -1,5 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using MikesRecipes.Data;
+using MikesRecipes.DAL;
 using MikesRecipes.Domain.Models;
 using MikesRecipes.Domain.Shared;
 using MikesRecipes.Services.DTOs;
@@ -8,9 +8,9 @@ using System.Data;
 
 namespace MikesRecipes.Services.Implementations;
 
-internal class RecipeService(IApplicationDbContext dbContext) : IRecipeService
+internal class RecipeService(MikesRecipesDbContext dbContext) : IRecipeService
 {
-	private readonly IApplicationDbContext _dbContext = dbContext;
+	private readonly MikesRecipesDbContext _dbContext = dbContext;
 
 	public async Task<Response<RecipesPage>> GetByIncludedProductsAsync(IEnumerable<ProductId> includedProducts, int otherProductsCount = 5, PagingOptions? pagingOptions = null, CancellationToken cancellationToken = default)
 	{

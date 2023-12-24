@@ -1,13 +1,13 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using MikesRecipes.Data;
+using MikesRecipes.DAL;
 using MikesRecipes.Domain.Shared;
 using MikesRecipes.Services.DTOs;
 
 namespace MikesRecipes.Services.Implementations;
 
-internal class ProductService(IApplicationDbContext dbContext) : IProductService
+internal class ProductService(MikesRecipesDbContext dbContext) : IProductService
 {
-	private readonly IApplicationDbContext _dbContext = dbContext;
+	private readonly MikesRecipesDbContext _dbContext = dbContext;
 
 	public async Task<Response<ProductsSetDTO>> GetAsync(string productTitlePattern, CancellationToken cancellationToken = default)
 	{

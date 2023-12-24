@@ -1,11 +1,10 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using MikesRecipes.DAL.Configurations;
-using MikesRecipes.Data;
 using MikesRecipes.Domain.Models;
 
 namespace MikesRecipes.DAL;
 
-public class MikesRecipesDbContext : DbContext, IApplicationDbContext
+public class MikesRecipesDbContext : DbContext
 {
 	public const string DatabaseName = "MikesRecipesDb";
 
