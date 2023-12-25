@@ -1,6 +1,6 @@
-using MikesRecipes.Services.Implementations.Extensions;
 using MikesRecipes.DAL;
 using MikesRecipes.Web.Extensions;
+using MikesRecipes.Services.Implementations;
 
 var builder = WebApplication.CreateBuilder(args);
 

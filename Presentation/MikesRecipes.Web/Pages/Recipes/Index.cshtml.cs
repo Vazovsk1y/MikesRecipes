@@ -2,8 +2,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using MikesRecipes.Domain.Models;
 using MikesRecipes.Services;
-using MikesRecipes.Services.DTOs;
-using MikesRecipes.Services.DTOs.Common;
+using MikesRecipes.Services.Contracts;
+using MikesRecipes.Services.Contracts.Common;
 
 namespace MikesRecipes.Web.Pages.Recipes;
 
@@ -20,7 +20,7 @@ public class IndexModel : PageModel
 
 	public RecipesPage? RecipesPage { get; set; }
 
-	public IEnumerable<RecipeDTO> Recipes => RecipesPage?.CurrentItems ?? Enumerable.Empty<RecipeDTO>();
+	public IEnumerable<RecipeDTO> Recipes => RecipesPage?.Items ?? Enumerable.Empty<RecipeDTO>();
 
 	[BindProperty]
 	public InputModel Input { get; set; } = new InputModel();

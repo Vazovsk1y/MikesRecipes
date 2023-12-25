@@ -4,7 +4,7 @@
 	ViewData["Title"] = "Recipes";
 }
 
-<h2>Найдено рецептов: @Model.RecipesPage?.TotalItemsCount</h2>
+<h2>Найдено рецептов: @Model.RecipesPage?.TotalCount</h2>
 <ul>
 	@if (Model.Recipes is not null)
 	{
@@ -57,5 +57,4 @@ else
 	</a>
 }
 
-<p>Page number @Model.RecipesPage?.PageIndex</p>
-<p>Total pages @Model.RecipesPage?.TotalPages</p>
+<p>@Model.RecipesPage?.PageIndex of @Model.RecipesPage?.TotalPages</p>
