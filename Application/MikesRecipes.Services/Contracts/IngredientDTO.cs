@@ -1,5 +1,5 @@
 ﻿using MikesRecipes.Domain.Models;
 
-namespace MikesRecipes.Services.DTOs;
+namespace MikesRecipes.Services.Contracts;
 
 public record IngredientDTO(RecipeId RecipeId, ProductId ProductId, string ProductTitle);

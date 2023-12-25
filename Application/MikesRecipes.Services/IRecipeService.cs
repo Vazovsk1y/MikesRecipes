@@ -1,7 +1,7 @@
 ﻿using MikesRecipes.Domain.Models;
 using MikesRecipes.Domain.Shared;
-using MikesRecipes.Services.DTOs;
-using MikesRecipes.Services.DTOs.Common;
+using MikesRecipes.Services.Contracts;
+using MikesRecipes.Services.Contracts.Common;
 
 namespace MikesRecipes.Services;
 

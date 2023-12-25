@@ -28,7 +28,7 @@ public class IndexModel : PageModel
         var result = await _productService.GetAsync(productTitlePrefix);
         if (result.IsSuccess)
         {
-            var response = new JsonResult(result.Value.Products);
+            var response = new JsonResult(result.Value);
             return response;
         }
 

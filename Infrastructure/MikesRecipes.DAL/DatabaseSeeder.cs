@@ -1,7 +1,6 @@
 ﻿using CsvHelper.Configuration;
 using CsvHelper;
 using CsvHelper.Configuration.Attributes;
-using MikesRecipes.Data;
 using MikesRecipes.Domain.Models;
 using CsvHelper.TypeConversion;
 using Newtonsoft.Json;
@@ -13,7 +12,7 @@ using System.Reflection;
 
 namespace MikesRecipes.DAL;
 
-public class DataSeeder : IDataSeeder
+public static class DatabaseSeeder
 {
 	#region --Private classes--
 #nullable disable
@@ -49,35 +48,27 @@ public class DataSeeder : IDataSeeder
 #nullable enable
 	#endregion
 
-	private readonly IApplicationDbContext _dbContext;
-	private readonly ILogger<DataSeeder> _logger;
 	private const string RecipesFileResourseName = "MikesRecipes.DAL.povarenok_recipes_2021_06_16.csv";
 
-	public DataSeeder(IApplicationDbContext dbContext, ILogger<DataSeeder> logger)
+	public static void Seed(this MikesRecipesDbContext dbContext, ILogger logger)
 	{
-		_dbContext = dbContext;
-		_logger = logger;
-	}
-
-	public async Task SeedDataAsync(CancellationToken cancellationToken = default)
-	{
-		if (_dbContext.Recipes.Any())
+		if (dbContext.Recipes.Any())
 		{
 			return;
 		}
 
 		var stopwatch = new Stopwatch();
 
-		_logger.LogInformation("Data seeding started.");
+		logger.LogInformation("Data seeding started.");
 
 		stopwatch.Start();
-		await InsertData(cancellationToken);
+		dbContext.InsertData();
 		stopwatch.Stop();
 
-		_logger.LogInformation("Data seeding ended. Times(seconds) elapsed {TotalSecondsElapsed}", stopwatch.Elapsed.TotalSeconds);
+		logger.LogInformation("Data seeding ended. Times(seconds) elapsed {TotalSecondsElapsed}", stopwatch.Elapsed.TotalSeconds);
 	}
 
-	private async Task InsertData(CancellationToken cancellationToken)
+	private static void InsertData(this MikesRecipesDbContext dbContext)
 	{
 		using var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(RecipesFileResourseName);
 		using var reader = new StreamReader(stream!);
@@ -123,8 +114,8 @@ public class DataSeeder : IDataSeeder
 			ingredientsToInsert.AddRange(recipeIngredients);
 		}
 
-		await _dbContext.Products.BulkInsertAsync(productsToInsert, cancellationToken);
-		await _dbContext.Recipes.BulkInsertAsync(recipesToInsert, cancellationToken);
-		await _dbContext.Ingredients.BulkInsertAsync(ingredientsToInsert, cancellationToken);
+		dbContext.Products.BulkInsert(productsToInsert);
+		dbContext.Recipes.BulkInsert(recipesToInsert);
+		dbContext.Ingredients.BulkInsert(ingredientsToInsert);
 	}
 }

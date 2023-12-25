@@ -1,9 +1,9 @@
 ﻿using MikesRecipes.Domain.Models;
 
-namespace MikesRecipes.Services.DTOs;
+namespace MikesRecipes.Services.Contracts;
 
 public record RecipeDTO(
 	RecipeId RecipeId, 
 	string Title, 
 	string Url, 
-	IReadOnlyCollection<IngredientDTO> Ingredients);
+	IReadOnlyCollection<ProductDTO> Ingredients);

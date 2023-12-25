@@ -27,7 +27,7 @@
 
 			$("#inputText").autocomplete({
 				select: function (e, i) {
-					var selectedProductId = i.item.value.productId.value;
+					var selectedProductId = i.item.value.id.value;
 
 					if (selectedProductsIds.indexOf(selectedProductId) !== -1)
 					{
