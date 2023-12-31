@@ -23,7 +23,10 @@ app.UseRouting();
 app.UseAuthorization();
 app.MapRazorPages();
 
-app.MigrateDatabase();
-app.SeedDatabase();
+if (app.Environment.IsDevelopment())
+{
+	app.MigrateDatabase();
+	app.SeedDatabase();
+}
 
 app.Run();

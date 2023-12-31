@@ -7,8 +7,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Core", "Core", "{7E935C53-7
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Infrastructure", "Infrastructure", "{48288F8B-5EDB-453D-B361-2C8C77C5565C}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tester", "Tester\Tester.csproj", "{F22D43E7-DD41-476F-865B-036537BF7052}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Application", "Application", "{4AB1D9AA-290D-46D6-89DB-C88EBCF80598}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MikesRecipes.Services.Implementations", "Infrastructure\MikesRecipes.Services.Implementations\MikesRecipes.Services.Implementations.csproj", "{6C99625A-D22E-4FCC-9DDF-FEA684B47DDD}"
@@ -29,10 +27,6 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{F22D43E7-DD41-476F-865B-036537BF7052}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{F22D43E7-DD41-476F-865B-036537BF7052}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{F22D43E7-DD41-476F-865B-036537BF7052}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{F22D43E7-DD41-476F-865B-036537BF7052}.Release|Any CPU.Build.0 = Release|Any CPU
 		{6C99625A-D22E-4FCC-9DDF-FEA684B47DDD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{6C99625A-D22E-4FCC-9DDF-FEA684B47DDD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6C99625A-D22E-4FCC-9DDF-FEA684B47DDD}.Release|Any CPU.ActiveCfg = Release|Any CPU
