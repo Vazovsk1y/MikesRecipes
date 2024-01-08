@@ -6,7 +6,7 @@ namespace MikesRecipes.DAL;
 
 public static class Registrator
 {
-    public static IServiceCollection AddDAL(this IServiceCollection services, IConfiguration configuration)
+    public static IServiceCollection AddDataAccessLayer(this IServiceCollection services, IConfiguration configuration)
     {
         services
             .AddDbContext<MikesRecipesDbContext>(e => e.UseSqlServer(configuration.GetConnectionString("Default")))
