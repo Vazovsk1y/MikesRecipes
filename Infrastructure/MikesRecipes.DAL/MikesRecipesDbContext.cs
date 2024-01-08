@@ -1,10 +1,11 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using MikesRecipes.DAL.Configurations;
 using MikesRecipes.Domain.Models;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 
 namespace MikesRecipes.DAL;
 
-public class MikesRecipesDbContext : DbContext
+public class MikesRecipesDbContext : IdentityDbContext<User, Role, Guid>
 {
 	public const string DatabaseName = "MikesRecipesDb";
 
@@ -18,7 +19,7 @@ public class MikesRecipesDbContext : DbContext
 
 	protected override void OnModelCreating(ModelBuilder modelBuilder)
 	{
-		modelBuilder.ApplyConfigurationsFromAssembly(typeof(RecipeConfiguration).Assembly);
 		base.OnModelCreating(modelBuilder);
+		modelBuilder.ApplyConfigurationsFromAssembly(typeof(RecipeConfiguration).Assembly);
 	}
 }

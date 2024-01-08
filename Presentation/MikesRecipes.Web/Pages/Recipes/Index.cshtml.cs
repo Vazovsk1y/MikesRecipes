@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using MikesRecipes.Domain.Models;
@@ -7,6 +8,7 @@ using MikesRecipes.Services.Contracts.Common;
 
 namespace MikesRecipes.Web.Pages.Recipes;
 
+[Authorize]
 public class IndexModel : PageModel
 {
 	private readonly IRecipeService _recipeService;
