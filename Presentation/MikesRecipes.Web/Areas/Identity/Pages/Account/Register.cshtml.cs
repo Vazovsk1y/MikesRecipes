@@ -18,6 +18,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
+using MikesRecipes.Domain.Constants;
 using MikesRecipes.Domain.Models;
 
 namespace MikesRecipes.Web.Areas.Identity.Pages.Account
@@ -122,6 +123,8 @@ namespace MikesRecipes.Web.Areas.Identity.Pages.Account
                 if (result.Succeeded)
                 {
                     _logger.LogInformation("User created a new account with password.");
+                    await _userManager.AddToRoleAsync(user, Roles.User);
+                    _logger.LogInformation("User added to default \"User\" role.");
 
                     var userId = await _userManager.GetUserIdAsync(user);
                     var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
@@ -155,18 +158,9 @@ namespace MikesRecipes.Web.Areas.Identity.Pages.Account
             return Page();
         }
 
-        private User CreateUser()
+        private static User CreateUser()
         {
-            try
-            {
-                return Activator.CreateInstance<User>();
-            }
-            catch
-            {
-                throw new InvalidOperationException($"Can't create an instance of '{nameof(User)}'. " +
-                    $"Ensure that '{nameof(User)}' is not an abstract class and has a parameterless constructor, or alternatively " +
-                    $"override the register page in /Areas/Identity/Pages/Account/Register.cshtml");
-            }
+            return new User();
         }
 
         private IUserEmailStore<User> GetEmailStore()
