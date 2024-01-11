@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Diagnostics;
 using Microsoft.Extensions.Logging;
 using System.Reflection;
+using MikesRecipes.Domain.Constants;
 
 namespace MikesRecipes.DAL;
 
@@ -62,13 +63,23 @@ public static class DatabaseSeeder
 		logger.LogInformation("Data seeding started.");
 
 		stopwatch.Start();
-		dbContext.InsertData();
-		stopwatch.Stop();
+        using var transaction = dbContext.Database.BeginTransaction();
+        try
+        {
+			dbContext.InsertData();
+			transaction.Commit();
+        }
+        catch (Exception ex)
+        {
+			logger.LogError(ex, "Something error occured.");
+			transaction.Rollback();
+        }
 
+		stopwatch.Stop();
 		logger.LogInformation("Data seeding ended. Times(seconds) elapsed {TotalSecondsElapsed}", stopwatch.Elapsed.TotalSeconds);
 	}
 
-	private static void InsertData(this MikesRecipesDbContext dbContext)
+    private static void InsertData(this MikesRecipesDbContext dbContext)
 	{
 		using var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(RecipesFileResourseName);
 		using var reader = new StreamReader(stream!);
@@ -114,8 +125,30 @@ public static class DatabaseSeeder
 			ingredientsToInsert.AddRange(recipeIngredients);
 		}
 
+		
 		dbContext.Products.BulkInsert(productsToInsert);
 		dbContext.Recipes.BulkInsert(recipesToInsert);
 		dbContext.Ingredients.BulkInsert(ingredientsToInsert);
-	}
+        dbContext.AddRoles();
+    }
+
+    private static void AddRoles(this MikesRecipesDbContext dbContext)
+    {
+        var roles = new Role[] {
+        new()
+        {
+           ConcurrencyStamp = Guid.NewGuid().ToString(),
+           Name = Roles.Admin,
+           NormalizedName = Roles.Admin.ToUpper(),
+        },
+        new()
+        {
+           ConcurrencyStamp = Guid.NewGuid().ToString(),
+           Name = Roles.User,
+           NormalizedName = Roles.User.ToUpper(),
+        }};
+
+        dbContext.Roles.AddRange(roles);
+        dbContext.SaveChanges();
+    }
 }
