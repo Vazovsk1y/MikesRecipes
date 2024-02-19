@@ -123,7 +123,7 @@ namespace MikesRecipes.Web.Areas.Identity.Pages.Account
                 if (result.Succeeded)
                 {
                     _logger.LogInformation("User created a new account with password.");
-                    await _userManager.AddToRoleAsync(user, Roles.User);
+                    await _userManager.AddToRoleAsync(user, DefaultRoles.User);
                     _logger.LogInformation("User added to default \"User\" role.");
 
                     var userId = await _userManager.GetUserIdAsync(user);

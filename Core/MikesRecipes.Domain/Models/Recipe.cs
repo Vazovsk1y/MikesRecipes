@@ -6,13 +6,13 @@ namespace MikesRecipes.Domain.Models;
 
 public class Recipe : Entity<RecipeId>
 {
-	public required string Title { get; set; }
+	public required string Title { get; init; }
 
-	public required string Url { get; set; }
+	public required string Url { get; init; }
 
 	public int IngredientsCount { get; set; }
 
-	public ICollection<Ingredient> Ingredients { get; set; } = new List<Ingredient>();
+	public ICollection<Ingredient> Ingredients { get; set; } = new HashSet<Ingredient>();
 
 	public Recipe() : base() { }
 }

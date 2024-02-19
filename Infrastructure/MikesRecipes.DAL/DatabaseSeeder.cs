@@ -138,14 +138,14 @@ public static class DatabaseSeeder
         new()
         {
            ConcurrencyStamp = Guid.NewGuid().ToString(),
-           Name = Roles.Admin,
-           NormalizedName = Roles.Admin.ToUpper(),
+           Name = DefaultRoles.Admin,
+           NormalizedName = DefaultRoles.Admin.ToUpper(),
         },
         new()
         {
            ConcurrencyStamp = Guid.NewGuid().ToString(),
-           Name = Roles.User,
-           NormalizedName = Roles.User.ToUpper(),
+           Name = DefaultRoles.User,
+           NormalizedName = DefaultRoles.User.ToUpper(),
         }};
 
         dbContext.Roles.AddRange(roles);

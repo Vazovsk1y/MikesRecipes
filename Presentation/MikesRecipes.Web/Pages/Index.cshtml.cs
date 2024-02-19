@@ -25,7 +25,7 @@ public class IndexModel : PageModel
 
 	public async Task<IActionResult> OnPostProductsAutoCompleteAsync(string productTitlePrefix)
     {
-        var result = await _productService.GetAsync(productTitlePrefix);
+        var result = await _productService.GetByTitleAsync(productTitlePrefix);
         if (result.IsSuccess)
         {
             var response = new JsonResult(result.Value);

@@ -52,7 +52,7 @@ public class IndexModel : PageModel
 				associatedProductsIds.Add(new ProductId(value));
 			}
 
-			var result = await _recipeService.GetByIncludedProductsAsync(associatedProductsIds, Input.OtherProductsCount, new PagingOptions(Input.PageIndex, DefaultPageSize));
+			var result = await _recipeService.GetByIncludedProductsAsync(new ByIncludedProductsFilter(associatedProductsIds, Input.OtherProductsCount), new PagingOptions(Input.PageIndex, DefaultPageSize));
 			if (result.IsSuccess)
 			{
 				RecipesPage = result.Value;

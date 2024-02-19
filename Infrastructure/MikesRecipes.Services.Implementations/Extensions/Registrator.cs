@@ -1,5 +1,6 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using MikesRecipes.Domain.Models;
+﻿using FluentValidation;
+using Microsoft.Extensions.DependencyInjection;
+using System.Reflection;
 
 namespace MikesRecipes.Services.Implementations;
 
@@ -9,6 +10,7 @@ public static class Registrator
     {
         services.AddScoped<IRecipeService, RecipeService>();
         services.AddScoped<IProductService, ProductService>();
+        services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
 
 		return services;
     }
