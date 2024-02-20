@@ -5,7 +5,9 @@ namespace MikesRecipes.DAL;
 
 internal class DbContextDesignTimeFactory : IDesignTimeDbContextFactory<MikesRecipesDbContext>
 {
-	private const string ConnectionString = $"Data Source=(localdb)\\MSSQLLocalDB;Initial Catalog={MikesRecipesDbContext.DatabaseName};Integrated Security=True;Connect Timeout=30;";
+    public const string DesignTimeDatabaseName = "MikesRecipesDb";
+
+    private const string ConnectionString = $"Data Source=(localdb)\\MSSQLLocalDB;Initial Catalog={DesignTimeDatabaseName};Integrated Security=True;Connect Timeout=30;";
 
 	public MikesRecipesDbContext CreateDbContext(string[] args)
 	{

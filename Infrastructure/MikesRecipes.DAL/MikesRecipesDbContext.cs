@@ -2,13 +2,15 @@
 using MikesRecipes.DAL.Configurations;
 using MikesRecipes.Domain.Models;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity;
 
 namespace MikesRecipes.DAL;
 
-public class MikesRecipesDbContext : IdentityDbContext<User, Role, Guid>
+public class MikesRecipesDbContext : IdentityDbContext<
+        User, Role, Guid,
+        IdentityUserClaim<Guid>, UserRole, IdentityUserLogin<Guid>,
+        IdentityRoleClaim<Guid>, IdentityUserToken<Guid>>
 {
-	public const string DatabaseName = "MikesRecipesDb";
-
 	public DbSet<Product> Products { get; set; }
 
 	public DbSet<Recipe> Recipes { get; set; }

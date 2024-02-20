@@ -2,7 +2,7 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace MikesRecipes.DAL;
+namespace MikesRecipes.DAL.Extensions;
 
 public static class Registrator
 {

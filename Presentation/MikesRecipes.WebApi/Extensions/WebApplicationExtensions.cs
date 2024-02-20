@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using MikesRecipes.DAL;
+using MikesRecipes.DAL.Extensions;
 
 namespace MikesRecipes.WebApi.Extensions;
 

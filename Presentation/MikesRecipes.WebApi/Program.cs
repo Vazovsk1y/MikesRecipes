@@ -1,6 +1,6 @@
 using Asp.Versioning;
 using Microsoft.Extensions.Options;
-using MikesRecipes.DAL;
+using MikesRecipes.DAL.Extensions;
 using MikesRecipes.Services.Implementations;
 using MikesRecipes.WebApi;
 using MikesRecipes.WebApi.Extensions;
