@@ -53,7 +53,7 @@ public static class DatabaseSeeder
 
 	public static void Seed(this MikesRecipesDbContext dbContext, ILogger logger)
 	{
-		if (dbContext.Recipes.Any())
+		if (!dbContext.IsAbleToSeed())
 		{
 			return;
 		}
@@ -77,6 +77,18 @@ public static class DatabaseSeeder
 
 		stopwatch.Stop();
 		logger.LogInformation("Data seeding ended. Times(seconds) elapsed {TotalSecondsElapsed}", stopwatch.Elapsed.TotalSeconds);
+	}
+
+	private static bool IsAbleToSeed(this MikesRecipesDbContext dbContext)
+	{
+		bool[] results = new[]
+		{
+			dbContext.Products.Any(),
+			dbContext.Ingredients.Any(),
+			dbContext.Products.Any(),
+		};
+
+		return results.All(e => e is false);
 	}
 
     private static void InsertData(this MikesRecipesDbContext dbContext)

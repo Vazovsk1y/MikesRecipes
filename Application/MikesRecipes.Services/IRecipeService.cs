@@ -8,11 +8,11 @@ public interface IRecipeService
 {
 	Task<Response<RecipesPage>> GetByIncludedProductsAsync(
 		ByIncludedProductsFilter filter, 
-		PagingOptions? pagingOptions = null, 
+		PagingOptions pagingOptions, 
 		CancellationToken cancellationToken = default);
 
 	Task<Response<RecipesPage>> GetAsync(
-		PagingOptions? pagingOptions = null, 
+		PagingOptions pagingOptions, 
 		CancellationToken cancellationToken = default);
 }
 

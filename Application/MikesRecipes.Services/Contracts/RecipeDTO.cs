@@ -3,7 +3,7 @@
 namespace MikesRecipes.Services.Contracts;
 
 public record RecipeDTO(
-	RecipeId RecipeId, 
+	RecipeId Id, 
 	string Title, 
 	string Url, 
-	IReadOnlyCollection<ProductDTO> Ingredients);
+	IReadOnlyCollection<ProductDTO> Products);
