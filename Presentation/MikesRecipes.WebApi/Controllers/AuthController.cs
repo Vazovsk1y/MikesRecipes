@@ -18,4 +18,12 @@ public class AuthController(IAuthProvider authProvider) : BaseController
         var result = await _authProvider.RegisterAsync(dto, cancellationToken);
         return result.IsSuccess ? Ok() : BadRequest(result.Error);
     }
+
+    [HttpPost("sign-in")]
+    public async Task<IActionResult> LoginAsync(UserLoginModel loginModel, CancellationToken cancellationToken)
+    {
+        var dto = loginModel.ToDTO();
+        var result = await _authProvider.LoginAsync(dto, cancellationToken);
+        return result.IsSuccess ? Ok(result.Value) : BadRequest(result.Error);
+    }
 }

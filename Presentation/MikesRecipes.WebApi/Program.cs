@@ -4,7 +4,6 @@ using MikesRecipes.DAL.Extensions;
 using MikesRecipes.Services.Implementations;
 using MikesRecipes.WebApi;
 using MikesRecipes.WebApi.Extensions;
-using MikesRecipes.WebApi.Filters;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -15,12 +14,9 @@ builder.Services.AddControllers();
 builder.Services.Configure<RouteOptions>(options => options.LowercaseUrls = true);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddTransient<IConfigureOptions<SwaggerGenOptions>, ConfigureSwaggerOptions>();
-builder.Services.AddSwaggerGen(e =>
-{
-    e.OperationFilter<SwaggerDefaultValuesFilter>();
-});
+builder.Services.AddSwaggerWithJwt();
 
-builder.Services.AddApplicationLayer();
+builder.Services.AddApplicationLayer(builder.Configuration);
 builder.Services.AddDataAccessLayer(builder.Configuration);
 
 builder.Services.AddExceptionHandler<ExceptionsHandler>();
@@ -63,6 +59,7 @@ app.UseHttpsRedirection();
 
 app.UseCors(e => e.AllowAnyHeader().AllowAnyOrigin().AllowAnyMethod());
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();

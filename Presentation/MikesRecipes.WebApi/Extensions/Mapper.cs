@@ -16,4 +16,9 @@ public static class Mapper
     {
         return new UserRegisterDTO(model.Username, model.Email, model.Password);
     }
+
+    public static UserLoginDTO ToDTO(this UserLoginModel model)
+    {
+        return new UserLoginDTO(model.Email, model.Password);
+    }
 }
