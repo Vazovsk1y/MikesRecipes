@@ -61,19 +61,10 @@ public static class DatabaseSeeder
         var stopwatch = new Stopwatch();
 
         logger.LogInformation("Data seeding started.");
-
         stopwatch.Start();
-        using var transaction = dbContext.Database.BeginTransaction();
-        try
-        {
-            dbContext.InsertData();
-            transaction.Commit();
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Something error occured.");
-            transaction.Rollback();
-        }
+
+        dbContext.InsertData();
+        dbContext.SaveChanges();
 
         stopwatch.Stop();
         logger.LogInformation("Data seeding ended. Times(seconds) elapsed {TotalSecondsElapsed}", stopwatch.Elapsed.TotalSeconds);
@@ -86,6 +77,7 @@ public static class DatabaseSeeder
             dbContext.Products.Any(),
             dbContext.Ingredients.Any(),
             dbContext.Products.Any(),
+            dbContext.Roles.Any(),
         };
 
         return results.All(e => e is false);
@@ -138,9 +130,9 @@ public static class DatabaseSeeder
         }
 
 
-        dbContext.Products.BulkInsert(productsToInsert);
-        dbContext.Recipes.BulkInsert(recipesToInsert);
-        dbContext.Ingredients.BulkInsert(ingredientsToInsert);
+        dbContext.Products.AddRange(productsToInsert);
+        dbContext.Recipes.AddRange(recipesToInsert);
+        dbContext.Ingredients.AddRange(ingredientsToInsert);
         dbContext.AddRoles();
     }
 
@@ -161,6 +153,5 @@ public static class DatabaseSeeder
         }};
 
         dbContext.Roles.AddRange(roles);
-        dbContext.SaveChanges();
     }
 }

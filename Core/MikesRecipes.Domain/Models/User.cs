@@ -9,10 +9,6 @@ public class User : IdentityUser<Guid>
 
     public IEnumerable<UserRole> Roles { get; set; } = new List<UserRole>();
 
-    public string RefreshToken { get; set; }
-
-    public DateTimeOffset RefreshTokenExpiryDate { get; set; }
-
     public User() 
     {
         Id = Guid.NewGuid();

@@ -9,7 +9,7 @@ namespace MikesRecipes.DAL;
 public class MikesRecipesDbContext : IdentityDbContext<
         User, Role, Guid,
         IdentityUserClaim<Guid>, UserRole, IdentityUserLogin<Guid>,
-        IdentityRoleClaim<Guid>, IdentityUserToken<Guid>>
+        IdentityRoleClaim<Guid>, UserToken>
 {
 	public DbSet<Product> Products { get; set; }
 

@@ -8,8 +8,17 @@ internal class UserConfiguration : IEntityTypeConfiguration<User>
 {
     public void Configure(EntityTypeBuilder<User> builder)
     {
-        builder.HasMany(e => e.Roles)
-                .WithOne(e => e.User)
-                .HasForeignKey(ur => ur.UserId);
+        builder
+            .HasMany(e => e.Roles)
+            .WithOne(e => e.User)
+            .HasForeignKey(ur => ur.UserId);
+
+        builder
+            .HasIndex(e => e.NormalizedEmail)
+            .IsUnique();
+
+        builder
+            .HasIndex(e => e.NormalizedUserName)
+            .IsUnique(false);
     }
 }
