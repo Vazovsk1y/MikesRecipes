@@ -1,6 +1,6 @@
-﻿using FluentValidation;
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
@@ -15,35 +15,37 @@ using static MikesRecipes.Services.Contracts.Auth;
 
 namespace MikesRecipes.Services.Implementations;
 
-public class AuthProvider(
-    IValidator<UserRegisterDTO> userRegisterValidator,
-    UserManager<User> userManager,
-    ITokenProvider tokenProvider,
-    IValidator<UserLoginDTO> userLoginValidator,
-    MikesRecipesDbContext dbContext,
-    IClock clock,
-    IOptions<JwtAuthOptions> jwtAuthOptions,
-    ILogger<AuthProvider> logger,
-    IUserClaimsPrincipalFactory<User> userClaimsPrincipalFactory) : IAuthProvider
+public class AuthProvider : BaseService, IAuthProvider
 {
-    private readonly IValidator<UserRegisterDTO> _userRegisterValidator = userRegisterValidator;
-    private readonly UserManager<User> _userManager = userManager;
-    private readonly ITokenProvider _tokenProvider = tokenProvider;
-    private readonly MikesRecipesDbContext _dbContext = dbContext;
-    private readonly IValidator<UserLoginDTO> _userLoginValidator = userLoginValidator;
-    private readonly IClock _clock = clock;
-    private readonly JwtAuthOptions _jwtAuthOptions = jwtAuthOptions.Value;
-    private readonly ILogger _logger = logger;
-    private readonly IUserClaimsPrincipalFactory<User> _userClaimsPrincipalFactory = userClaimsPrincipalFactory;
+    private readonly UserManager<User> _userManager;
+    private readonly ITokenProvider _tokenProvider;
+    private readonly JwtAuthOptions _jwtAuthOptions;
+    private readonly IUserClaimsPrincipalFactory<User> _userClaimsPrincipalFactory;
+
+    public AuthProvider(
+        IClock clock, 
+        ILogger<BaseService> logger, 
+        MikesRecipesDbContext dbContext, 
+        IServiceScopeFactory serviceScopeFactory,
+        UserManager<User> userManager, 
+        ITokenProvider tokenProvider, 
+        IOptions<JwtAuthOptions> jwtAuthOptions, 
+        IUserClaimsPrincipalFactory<User> userClaimsPrincipalFactory) : base(clock, logger, dbContext, serviceScopeFactory)
+    {
+        _userManager = userManager;
+        _tokenProvider = tokenProvider;
+        _jwtAuthOptions = jwtAuthOptions.Value;
+        _userClaimsPrincipalFactory = userClaimsPrincipalFactory;
+    }
 
     public async Task<Response<TokensDTO>> LoginAsync(UserLoginDTO userLoginDTO, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        var validationResult = _userLoginValidator.Validate(userLoginDTO);
-        if (!validationResult.IsValid)
+        var validationResult = Validate(userLoginDTO);
+        if (validationResult.IsFailure)
         {
-            return Response.Failure<TokensDTO>(new Error(validationResult.ToString()));
+            return Response.Failure<TokensDTO>(validationResult.Error);
         }
 
         var user = await _userManager.FindByEmailAsync(userLoginDTO.Email);
@@ -106,10 +108,10 @@ public class AuthProvider(
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        var validationResult = _userRegisterValidator.Validate(userRegisterDTO);
-        if (!validationResult.IsValid)
+        var validationResult = Validate(userRegisterDTO);
+        if (validationResult.IsFailure)
         {
-            return Response.Failure(new Error(validationResult.ToString()));
+            return Response.Failure(validationResult.Error);
         }
 
         var userWithPassedEmail = await _userManager.FindByEmailAsync(userRegisterDTO.Email);

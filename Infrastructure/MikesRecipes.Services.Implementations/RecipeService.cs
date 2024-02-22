@@ -1,33 +1,35 @@
 ﻿using FluentValidation;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using MikesRecipes.DAL;
 using MikesRecipes.Domain.Models;
 using MikesRecipes.Domain.Shared;
 using MikesRecipes.Services.Contracts;
 using MikesRecipes.Services.Contracts.Common;
 using MikesRecipes.Services.Implementations.Extensions;
-using MikesRecipes.Services.Implementations.Validators;
 using System.Data;
 
 namespace MikesRecipes.Services.Implementations;
 
-internal class RecipeService(
-    MikesRecipesDbContext dbContext,
-    IValidator<ByIncludedProductsFilter> filterValidator,
-    IValidator<PagingOptions> pagingOptionsValidator) : IRecipeService
+public class RecipeService : BaseService, IRecipeService
 {
-    private readonly MikesRecipesDbContext _dbContext = dbContext;
-    private readonly IValidator<ByIncludedProductsFilter> _filterValidator = filterValidator;
-    private readonly IValidator<PagingOptions> _pagingOptionsValidator = pagingOptionsValidator;
+    public RecipeService(
+        IClock clock, 
+        ILogger<BaseService> logger, 
+        MikesRecipesDbContext dbContext, 
+        IServiceScopeFactory serviceScopeFactory) : base(clock, logger, dbContext, serviceScopeFactory)
+    {
+    }
 
     public async Task<Response<RecipesPage>> GetAsync(PagingOptions pagingOptions, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        var validationResult = _pagingOptionsValidator.Validate(pagingOptions);
-        if (!validationResult.IsValid)
+        var validationResult = Validate(pagingOptions);
+        if (validationResult.IsFailure)
         {
-            return Response.Failure<RecipesPage>(new Error(validationResult.ToString()));
+            return Response.Failure<RecipesPage>(validationResult.Error);
         }
 
         int totalItemsCount = _dbContext.Recipes.Count();
@@ -57,16 +59,16 @@ internal class RecipeService(
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        var pagingOptionsValidationResult = _pagingOptionsValidator.Validate(pagingOptions);
-        if (!pagingOptionsValidationResult.IsValid)
+        var pagingOptionsValidationResult = Validate(pagingOptions);
+        if (pagingOptionsValidationResult.IsFailure)
         {
-            return Response.Failure<RecipesPage>(new Error(pagingOptionsValidationResult.ToString()));
+            return Response.Failure<RecipesPage>(pagingOptionsValidationResult.Error);
         }
 
-        var filterValidationResult = _filterValidator.Validate(filter);
-        if (!pagingOptionsValidationResult.IsValid)
+        var filterValidationResult = Validate(filter);
+        if (pagingOptionsValidationResult.IsFailure)
         {
-            return Response.Failure<RecipesPage>(new Error(filterValidationResult.ToString()));
+            return Response.Failure<RecipesPage>(filterValidationResult.Error);
         }
 
         int includedProductsCount = filter.ProductIds.Count();
