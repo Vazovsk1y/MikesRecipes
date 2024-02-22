@@ -26,4 +26,12 @@ public class AuthController(IAuthProvider authProvider) : BaseController
         var result = await _authProvider.LoginAsync(dto, cancellationToken);
         return result.IsSuccess ? Ok(result.Value) : BadRequest(result.Error);
     }
+
+    [HttpPost("refresh")]
+    public async Task<IActionResult> RefreshAsync(RefreshModel refreshModel, CancellationToken cancellationToken)
+    {
+        var dto = refreshModel.ToDTO();
+        var result = await _authProvider.RefreshTokenAsync(dto, cancellationToken);
+        return result.IsSuccess ? Ok(result.Value) : BadRequest(result.Error);
+    }
 }

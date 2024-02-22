@@ -1,10 +1,10 @@
-﻿using static MikesRecipes.Services.Contracts.Auth;
+﻿using System.Security.Claims;
 
 namespace MikesRecipes.Services;
 
 public interface ITokenProvider
 {
-	string GenerateAccessToken(GenerateAccessTokenDTO generateAccessTokenDTO);
+	string GenerateAccessToken(ClaimsPrincipal claimsPrincipal);
 
 	string GenerateRefreshToken();
 }

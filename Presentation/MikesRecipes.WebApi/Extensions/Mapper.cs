@@ -21,4 +21,9 @@ public static class Mapper
     {
         return new UserLoginDTO(model.Email, model.Password);
     }
+
+    public static TokensDTO ToDTO(this RefreshModel model)
+    {
+        return new TokensDTO(model.ExpiredJwtToken, model.RefreshToken);
+    }
 }

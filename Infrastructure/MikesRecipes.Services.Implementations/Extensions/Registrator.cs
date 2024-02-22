@@ -8,6 +8,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 
 namespace MikesRecipes.Services.Implementations;
 
@@ -24,9 +26,6 @@ public static class Registrator
 
         services.AddIdentity<User, Role>(e =>
         {
-            e.SignIn.RequireConfirmedPhoneNumber = false;
-            e.SignIn.RequireConfirmedEmail = false;
-
             e.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(10);
             e.Lockout.MaxFailedAccessAttempts = 10;
             e.Lockout.AllowedForNewUsers = true;
@@ -37,6 +36,12 @@ public static class Registrator
             e.Password.RequireDigit = false;
             e.Password.RequireNonAlphanumeric = false;
             e.Password.RequireUppercase = false;
+
+            e.ClaimsIdentity.SecurityStampClaimType = nameof(User.SecurityStamp);
+            e.ClaimsIdentity.UserIdClaimType = JwtRegisteredClaimNames.Sub;
+            e.ClaimsIdentity.UserNameClaimType = JwtRegisteredClaimNames.Name;
+            e.ClaimsIdentity.RoleClaimType = ClaimTypes.Role;
+            e.ClaimsIdentity.EmailClaimType = JwtRegisteredClaimNames.Email;
         })
         .AddEntityFrameworkStores<MikesRecipesDbContext>()
         .AddDefaultTokenProviders();

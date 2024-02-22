@@ -6,6 +6,6 @@ public class UserToken : IdentityUserToken<Guid>
 {
     public const string RefreshTokenName = "Refresh_token";
 
-    public const string RefreshTokenLoginProviderName = "MikesRecipes";
+    public const string RefreshTokenLoginProvider = "MikesRecipes";
     public required DateTimeOffset ExpiryDate { get; set; }
 }
