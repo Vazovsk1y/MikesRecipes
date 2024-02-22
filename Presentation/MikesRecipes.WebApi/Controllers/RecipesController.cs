@@ -24,7 +24,7 @@ public class RecipesController(IRecipeService recipeService) : BaseController
     CancellationToken cancellationToken)
     {
         var result = await _recipeService.GetAsync(new PagingOptions(pageIndex, pageSize), cancellationToken);
-        return result.IsSuccess ? Ok(result.Value) : BadRequest(result.Error);
+        return result.IsSuccess ? Ok(result.Value) : BadRequest(result.Errors);
     }
 
     [HttpPost]
@@ -41,6 +41,6 @@ public class RecipesController(IRecipeService recipeService) : BaseController
     {
         var dto = filterModel.ToDTO();
         var result = await _recipeService.GetByIncludedProductsAsync(dto, new PagingOptions(pageIndex, pageSize), cancellationToken);
-        return result.IsSuccess ? Ok(result.Value) : BadRequest(result.Error);
+        return result.IsSuccess ? Ok(result.Value) : BadRequest(result.Errors);
     }
 }

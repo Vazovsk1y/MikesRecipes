@@ -16,7 +16,7 @@ public class AuthController(IAuthProvider authProvider) : BaseController
     {
         var dto = registerModel.ToDTO();
         var result = await _authProvider.RegisterAsync(dto, cancellationToken);
-        return result.IsSuccess ? Ok() : BadRequest(result.Error);
+        return result.IsSuccess ? Ok() : BadRequest(result.Errors);
     }
 
     [HttpPost("sign-in")]
@@ -24,7 +24,7 @@ public class AuthController(IAuthProvider authProvider) : BaseController
     {
         var dto = loginModel.ToDTO();
         var result = await _authProvider.LoginAsync(dto, cancellationToken);
-        return result.IsSuccess ? Ok(result.Value) : BadRequest(result.Error);
+        return result.IsSuccess ? Ok(result.Value) : BadRequest(result.Errors);
     }
 
     [HttpPost("refresh")]
@@ -32,6 +32,6 @@ public class AuthController(IAuthProvider authProvider) : BaseController
     {
         var dto = refreshModel.ToDTO();
         var result = await _authProvider.RefreshTokenAsync(dto, cancellationToken);
-        return result.IsSuccess ? Ok(result.Value) : BadRequest(result.Error);
+        return result.IsSuccess ? Ok(result.Value) : BadRequest(result.Errors);
     }
 }

@@ -29,7 +29,7 @@ public class RecipeService : BaseService, IRecipeService
         var validationResult = Validate(pagingOptions);
         if (validationResult.IsFailure)
         {
-            return Response.Failure<RecipesPage>(validationResult.Error);
+            return Response.Failure<RecipesPage>(validationResult.Errors);
         }
 
         int totalItemsCount = _dbContext.Recipes.Count();
@@ -40,13 +40,7 @@ public class RecipeService : BaseService, IRecipeService
             .ThenInclude(i => i.Product)
             .OrderBy(e => e.Title)
             .ApplyPaging(pagingOptions)
-            .Select(e => new RecipeDTO
-                (
-                    e.Id,
-                    e.Title,
-                    e.Url,
-                    e.Ingredients.Select(ing => new ProductDTO(ing.ProductId, ing.Product.Title)).ToList()
-                ))
+            .Select(e => e.ToDTO())
             .ToListAsync(cancellationToken);
 
         return Response.Success(new RecipesPage(recipesDtos, totalItemsCount, pagingOptions));
@@ -59,29 +53,16 @@ public class RecipeService : BaseService, IRecipeService
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        var pagingOptionsValidationResult = Validate(pagingOptions);
-        if (pagingOptionsValidationResult.IsFailure)
+        var validationResult = Validate(pagingOptions, filter);
+        if (validationResult.IsFailure)
         {
-            return Response.Failure<RecipesPage>(pagingOptionsValidationResult.Error);
+            return Response.Failure<RecipesPage>(validationResult.Errors);
         }
 
-        var filterValidationResult = Validate(filter);
-        if (pagingOptionsValidationResult.IsFailure)
-        {
-            return Response.Failure<RecipesPage>(filterValidationResult.Error);
-        }
+        var includedProductsIds = filter.ProductIds.ToList();
+        int includedProductsCount = includedProductsIds.Count;
 
-        int includedProductsCount = filter.ProductIds.Count();
-        bool isAllProductsExists = _dbContext
-            .Products
-            .Where(e => filter.ProductIds.Contains(e.Id))
-            .Count() == includedProductsCount;
-        if (!isAllProductsExists)
-        {
-            return Response.Failure<RecipesPage>(new Error("Invalid products ids passed."));
-        }
-
-        string productsIdsRaw = string.Join(",", filter.ProductIds.Select(e => $"'{e.Value}'"));
+        string productsIdsRaw = string.Join(",", includedProductsIds.Select(e => $"'{e.Value}'"));
         string sql = $@"
              SELECT [r].[{nameof(Recipe.Id)}], [r].[{nameof(Recipe.Title)}], [r].[{nameof(Recipe.Url)}], [r].[{nameof(Recipe.IngredientsCount)}]
              FROM [{nameof(_dbContext.Products)}] AS [p]
@@ -99,13 +80,7 @@ public class RecipeService : BaseService, IRecipeService
             .AsNoTracking()
             .OrderBy(e => e.Title)
             .ApplyPaging(pagingOptions)
-            .Select(e => new RecipeDTO
-                (
-                    e.Id,
-                    e.Title,
-                    e.Url,
-                    e.Ingredients.Select(pr => new ProductDTO(pr.ProductId, pr.Product.Title)).ToList()
-                ))
+            .Select(e => e.ToDTO())
             .ToListAsync(cancellationToken);
 
         return Response.Success(new RecipesPage(result, totalRecipesCount, pagingOptions));

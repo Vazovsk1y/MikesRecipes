@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using MikesRecipes.DAL;
 using MikesRecipes.Domain.Shared;
 using MikesRecipes.Services.Contracts;
+using MikesRecipes.Services.Implementations.Extensions;
 
 namespace MikesRecipes.Services.Implementations;
 
@@ -21,13 +22,13 @@ internal class ProductService : BaseService, IProductService
 	{
 		if (string.IsNullOrWhiteSpace(searchTerm))
 		{
-			return Response.Failure<IReadOnlyCollection<ProductDTO>>(new Error("Incorrect search term passed."));
+			return Response.Failure<IReadOnlyCollection<ProductDTO>>(Errors.NullOrWhiteSpaceString("Search term"));
 		}
 
 		var products = await _dbContext
 			.Products
 			.Where(pr => pr.Title.Contains(searchTerm))
-			.Select(e => new ProductDTO(e.Id, e.Title))
+			.Select(e => e.ToDTO())
 			.ToListAsync(cancellationToken);
 
 		return products;

@@ -14,6 +14,6 @@ public class ProductsController(IProductService productService) : BaseController
     public async Task<IActionResult> GetByTitleSearchTerm([Required][FromQuery] string searchByTitleTerm, CancellationToken cancellationToken)
     {
         var result = await _productService.GetByTitleAsync(searchByTitleTerm, cancellationToken);
-        return result.IsSuccess ? Ok(result.Value) : BadRequest(result.Error);
+        return result.IsSuccess ? Ok(result.Value) : BadRequest(result.Errors);
     }
 }

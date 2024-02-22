@@ -45,25 +45,24 @@ public class AuthProvider : BaseService, IAuthProvider
         var validationResult = Validate(userLoginDTO);
         if (validationResult.IsFailure)
         {
-            return Response.Failure<TokensDTO>(validationResult.Error);
+            return Response.Failure<TokensDTO>(validationResult.Errors);
         }
 
         var user = await _userManager.FindByEmailAsync(userLoginDTO.Email);
-
         if (user is null)
         {
-            return Response.Failure<TokensDTO>(new Error("Invalid email or password."));
+            return Response.Failure<TokensDTO>(Errors.Auth.InvalidEmailOrPassword);
         }
 
         if (await _userManager.IsLockedOutAsync(user))
         {
-            return Response.Failure<TokensDTO>(new Error("Try later."));
+            return Response.Failure<TokensDTO>(Errors.Auth.UserLockedOut);
         }
 
         if (!await _userManager.CheckPasswordAsync(user, userLoginDTO.Password))
         {
             await _userManager.AccessFailedAsync(user);
-            return Response.Failure<TokensDTO>(new Error("Invalid email or password."));
+            return Response.Failure<TokensDTO>(Errors.Auth.InvalidEmailOrPassword);
         }
 
         var claimsPrincipal = await _userClaimsPrincipalFactory.CreateAsync(user);
@@ -111,13 +110,13 @@ public class AuthProvider : BaseService, IAuthProvider
         var validationResult = Validate(userRegisterDTO);
         if (validationResult.IsFailure)
         {
-            return Response.Failure(validationResult.Error);
+            return Response.Failure(validationResult.Errors);
         }
 
         var userWithPassedEmail = await _userManager.FindByEmailAsync(userRegisterDTO.Email);
         if (userWithPassedEmail is not null)
         {
-            return Response.Failure(new Error("Email is already taken."));
+            return Response.Failure(Errors.Auth.EmailAlreadyTaken);
         }
 
         var user = new User
@@ -129,7 +128,7 @@ public class AuthProvider : BaseService, IAuthProvider
         var creationResult = await _userManager.CreateAsync(user, userRegisterDTO.Password);
         if (!creationResult.Succeeded)
         {
-            return Response.Failure(new Error(string.Join(Environment.NewLine, creationResult.Errors.Select(e => e.Description))));
+            return Response.Failure(creationResult.Errors.Select(e => new Error(e.Code, e.Description)));
         }
 
         var addedUser = await _userManager.FindByEmailAsync(user.Email);
@@ -144,7 +143,7 @@ public class AuthProvider : BaseService, IAuthProvider
         var principal = GetClaimsPrincipalFromExpiredJwtToken(tokensDTO.AccessToken);
         if (principal is null || principal.Identity is null || principal.Identity.IsAuthenticated is false)
         {
-            return Response.Failure<string>(new Error("Invalid access token."));
+            return Response.Failure<string>(Errors.Auth.InvalidAccessToken);
         }
 
         var userId = Guid.Parse(principal.Claims.Single(e => e.Type == ClaimTypes.NameIdentifier).Value);
@@ -154,10 +153,15 @@ public class AuthProvider : BaseService, IAuthProvider
             && e.LoginProvider == UserToken.RefreshTokenLoginProvider
             && e.Name == UserToken.RefreshTokenName, cancellationToken);
 
-        var currentDate = _clock.GetUtcNow();
-        if (refreshToken is null || refreshToken.Value != tokensDTO.RefreshToken || refreshToken.ExpiryDate < currentDate)
+        if (refreshToken is null || refreshToken.Value != tokensDTO.RefreshToken)
         {
-            return Response.Failure<string>(new Error("Refresh token was invalid or was not found."));
+            return Response.Failure<string>(Errors.Auth.InvalidRefreshToken);
+        }
+
+        var currentDate = _clock.GetUtcNow();
+        if (refreshToken.ExpiryDate < currentDate)
+        {
+            return Response.Failure<string>(Errors.Auth.RefreshTokenExpired);
         }
 
         var user = await _userManager.FindByIdAsync(userId.ToString());
