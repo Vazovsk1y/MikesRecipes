@@ -7,12 +7,12 @@ using MikesRecipes.DAL;
 using MikesRecipes.Domain.Constants;
 using MikesRecipes.Domain.Models;
 using MikesRecipes.Domain.Shared;
-using MikesRecipes.Services.Implementations.Constants;
+using MikesRecipes.Services.Implementation.Constants;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using static MikesRecipes.Services.Contracts.Auth;
 
-namespace MikesRecipes.Services.Implementations;
+namespace MikesRecipes.Services.Implementation;
 
 public class AuthProvider : BaseService, IAuthProvider
 {

@@ -4,10 +4,10 @@ using Microsoft.Extensions.Logging;
 using MikesRecipes.DAL;
 using MikesRecipes.Domain.Shared;
 using MikesRecipes.Services.Contracts;
-using MikesRecipes.Services.Implementations.Constants;
-using MikesRecipes.Services.Implementations.Extensions;
+using MikesRecipes.Services.Implementation.Constants;
+using MikesRecipes.Services.Implementation.Extensions;
 
-namespace MikesRecipes.Services.Implementations;
+namespace MikesRecipes.Services.Implementation;
 
 internal class ProductService : BaseService, IProductService
 {

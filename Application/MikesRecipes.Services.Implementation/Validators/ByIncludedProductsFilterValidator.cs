@@ -1,7 +1,7 @@
 ﻿using FluentValidation;
 using MikesRecipes.Services.Contracts;
 
-namespace MikesRecipes.Services.Implementations.Validators;
+namespace MikesRecipes.Services.Implementation.Validators;
 
 public class ByIncludedProductsFilterValidator : AbstractValidator<ByIncludedProductsFilter>
 {

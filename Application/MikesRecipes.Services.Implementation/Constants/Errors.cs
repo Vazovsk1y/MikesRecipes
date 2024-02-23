@@ -1,6 +1,6 @@
 ﻿using MikesRecipes.Domain.Shared;
 
-namespace MikesRecipes.Services.Implementations.Constants;
+namespace MikesRecipes.Services.Implementation.Constants;
 
 public static class Errors
 {

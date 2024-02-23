@@ -1,6 +1,6 @@
 ﻿using MikesRecipes.Services.Contracts.Common;
 
-namespace MikesRecipes.Services.Implementations.Extensions;
+namespace MikesRecipes.Services.Implementation.Extensions;
 
 internal static class Common
 {

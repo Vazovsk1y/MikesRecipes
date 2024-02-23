@@ -1,7 +1,7 @@
 ﻿using MikesRecipes.Domain.Models;
 using MikesRecipes.Services.Contracts;
 
-namespace MikesRecipes.Services.Implementations.Extensions;
+namespace MikesRecipes.Services.Implementation.Extensions;
 
 internal static class Mapper
 {

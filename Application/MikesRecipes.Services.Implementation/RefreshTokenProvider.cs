@@ -4,10 +4,10 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using MikesRecipes.DAL;
 using MikesRecipes.Domain.Models;
-using MikesRecipes.Services.Implementations.Constants;
+using MikesRecipes.Services.Implementation.Constants;
 using System.Security.Cryptography;
 
-namespace MikesRecipes.Services.Implementations;
+namespace MikesRecipes.Services.Implementation;
 
 public class RefreshTokenProvider : IUserTwoFactorTokenProvider<User>
 {

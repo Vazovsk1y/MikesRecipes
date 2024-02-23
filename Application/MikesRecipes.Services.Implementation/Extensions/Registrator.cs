@@ -10,9 +10,9 @@ using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using MikesRecipes.Services.Implementations.Constants;
+using MikesRecipes.Services.Implementation.Constants;
 
-namespace MikesRecipes.Services.Implementations;
+namespace MikesRecipes.Services.Implementation;
 
 public static class Registrator
 {

@@ -7,10 +7,10 @@ using MikesRecipes.Domain.Models;
 using MikesRecipes.Domain.Shared;
 using MikesRecipes.Services.Contracts;
 using MikesRecipes.Services.Contracts.Common;
-using MikesRecipes.Services.Implementations.Extensions;
+using MikesRecipes.Services.Implementation.Extensions;
 using System.Data;
 
-namespace MikesRecipes.Services.Implementations;
+namespace MikesRecipes.Services.Implementation;
 
 public class RecipeService : BaseService, IRecipeService
 {

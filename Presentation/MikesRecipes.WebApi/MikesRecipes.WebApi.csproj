@@ -17,8 +17,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\Application\MikesRecipes.Services.Implementation\MikesRecipes.Services.Implementation.csproj" />
     <ProjectReference Include="..\..\Infrastructure\MikesRecipes.DAL\MikesRecipes.DAL.csproj" />
-    <ProjectReference Include="..\..\Infrastructure\MikesRecipes.Services.Implementations\MikesRecipes.Services.Implementations.csproj" />
   </ItemGroup>
 
 </Project>

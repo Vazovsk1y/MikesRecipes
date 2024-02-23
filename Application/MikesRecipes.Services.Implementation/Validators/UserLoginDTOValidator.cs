@@ -1,7 +1,7 @@
 ﻿using FluentValidation;
 using static MikesRecipes.Services.Contracts.Auth;
 
-namespace MikesRecipes.Services.Implementations.Validators;
+namespace MikesRecipes.Services.Implementation.Validators;
 
 public class UserLoginDTOValidator : AbstractValidator<UserLoginDTO>
 {
