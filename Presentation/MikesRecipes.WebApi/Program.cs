@@ -29,6 +29,7 @@ builder.Services.AddApiVersioning(e =>
     e.ReportApiVersions = true;
     e.ApiVersionReader = new UrlSegmentApiVersionReader();
 })
+.AddMvc()
 .AddApiExplorer(e =>
 {
     e.GroupNameFormat = "'v'VVV";

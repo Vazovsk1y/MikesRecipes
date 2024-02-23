@@ -12,7 +12,7 @@ using MikesRecipes.DAL;
 namespace MikesRecipes.DAL.Migrations
 {
     [DbContext(typeof(MikesRecipesDbContext))]
-    [Migration("20240221100414_Initial")]
+    [Migration("20240223094121_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -236,7 +236,9 @@ namespace MikesRecipes.DAL.Migrations
                         .HasFilter("[NormalizedEmail] IS NOT NULL");
 
                     b.HasIndex("NormalizedUserName")
-                        .HasDatabaseName("UserNameIndex");
+                        .IsUnique()
+                        .HasDatabaseName("UserNameIndex")
+                        .HasFilter("[NormalizedUserName] IS NOT NULL");
 
                     b.ToTable("AspNetUsers", (string)null);
                 });

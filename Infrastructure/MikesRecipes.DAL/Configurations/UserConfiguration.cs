@@ -16,9 +16,5 @@ internal class UserConfiguration : IEntityTypeConfiguration<User>
         builder
             .HasIndex(e => e.NormalizedEmail)
             .IsUnique();
-
-        builder
-            .HasIndex(e => e.NormalizedUserName)
-            .IsUnique(false);
     }
 }

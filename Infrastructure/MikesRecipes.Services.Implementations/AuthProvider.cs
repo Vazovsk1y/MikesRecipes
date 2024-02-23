@@ -3,14 +3,13 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Microsoft.IdentityModel.Tokens;
 using MikesRecipes.DAL;
 using MikesRecipes.Domain.Constants;
 using MikesRecipes.Domain.Models;
 using MikesRecipes.Domain.Shared;
+using MikesRecipes.Services.Implementations.Constants;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using System.Text;
 using static MikesRecipes.Services.Contracts.Auth;
 
 namespace MikesRecipes.Services.Implementations;
@@ -18,9 +17,7 @@ namespace MikesRecipes.Services.Implementations;
 public class AuthProvider : BaseService, IAuthProvider
 {
     private readonly UserManager<User> _userManager;
-    private readonly ITokenProvider _tokenProvider;
-    private readonly JwtAuthOptions _jwtAuthOptions;
-    private readonly IUserClaimsPrincipalFactory<User> _userClaimsPrincipalFactory;
+    private readonly AuthOptions _authOptions;
 
     public AuthProvider(
         IClock clock, 
@@ -28,14 +25,37 @@ public class AuthProvider : BaseService, IAuthProvider
         MikesRecipesDbContext dbContext, 
         IServiceScopeFactory serviceScopeFactory,
         UserManager<User> userManager, 
-        ITokenProvider tokenProvider, 
-        IOptions<JwtAuthOptions> jwtAuthOptions, 
-        IUserClaimsPrincipalFactory<User> userClaimsPrincipalFactory) : base(clock, logger, dbContext, serviceScopeFactory)
+        IOptions<AuthOptions> authOptions) : base(clock, logger, dbContext, serviceScopeFactory)
     {
         _userManager = userManager;
-        _tokenProvider = tokenProvider;
-        _jwtAuthOptions = jwtAuthOptions.Value;
-        _userClaimsPrincipalFactory = userClaimsPrincipalFactory;
+        _authOptions = authOptions.Value;
+    }
+
+    public async Task<Response> RegisterAsync(UserRegisterDTO userRegisterDTO, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var validationResult = Validate(userRegisterDTO);
+        if (validationResult.IsFailure)
+        {
+            return Response.Failure(validationResult.Errors);
+        }
+
+        var user = new User
+        {
+            Email = userRegisterDTO.Email.Trim(),
+            UserName = userRegisterDTO.Username.Trim(),
+        };
+
+        var creationResult = await _userManager.CreateAsync(user, userRegisterDTO.Password);
+        if (!creationResult.Succeeded)
+        {
+            return Response.Failure(creationResult.Errors.Select(e => new Error(e.Code, e.Description)));
+        }
+
+        var addedUser = await _userManager.FindByEmailAsync(user.Email);
+        await _userManager.AddToRoleAsync(user, DefaultRoles.User);
+        return Response.Success();
     }
 
     public async Task<Response<TokensDTO>> LoginAsync(UserLoginDTO userLoginDTO, CancellationToken cancellationToken = default)
@@ -65,30 +85,30 @@ public class AuthProvider : BaseService, IAuthProvider
             return Response.Failure<TokensDTO>(Errors.Auth.InvalidEmailOrPassword);
         }
 
-        var claimsPrincipal = await _userClaimsPrincipalFactory.CreateAsync(user);
-        string accessToken = _tokenProvider.GenerateAccessToken(claimsPrincipal);
-        string refreshToken = _tokenProvider.GenerateRefreshToken();
+        string accessToken = await _userManager.GenerateUserTokenAsync(user, TokenProviders.AccessTokenProvider.LoginProvider, TokenProviders.AccessTokenProvider.Name);
+        string refreshToken = await _userManager.GenerateUserTokenAsync(user, TokenProviders.RefreshTokenProvider.LoginProvider, TokenProviders.RefreshTokenProvider.Name);
 
         var existingRefreshToken = await _dbContext
             .UserTokens
             .SingleOrDefaultAsync(e => e.UserId == user.Id
-            && e.LoginProvider == UserToken.RefreshTokenLoginProvider
-            && e.Name == UserToken.RefreshTokenName, cancellationToken);
+            && e.LoginProvider == TokenProviders.RefreshTokenProvider.LoginProvider
+            && e.Name == TokenProviders.RefreshTokenProvider.Name, cancellationToken);
 
+        var currentDate = _clock.GetUtcNow();
         if (existingRefreshToken is not null)
         {
-            existingRefreshToken.ExpiryDate = _clock.GetUtcNow().AddDays(_jwtAuthOptions.RefreshTokenLifetimeDaysCount);
+            existingRefreshToken.ExpiryDate = currentDate.AddDays(_authOptions.RefreshTokenLifetimeDaysCount);
             existingRefreshToken.Value = refreshToken;
         }
         else
         {
             var token = new UserToken
             {
-                ExpiryDate = _clock.GetUtcNow().AddDays(_jwtAuthOptions.RefreshTokenLifetimeDaysCount),
+                ExpiryDate = currentDate.AddDays(_authOptions.RefreshTokenLifetimeDaysCount),
                 Value = refreshToken,
                 UserId = user.Id,
-                LoginProvider = UserToken.RefreshTokenLoginProvider,
-                Name = UserToken.RefreshTokenName
+                LoginProvider = TokenProviders.RefreshTokenProvider.LoginProvider,
+                Name = TokenProviders.RefreshTokenProvider.Name
             };
 
             _dbContext.UserTokens.Add(token);
@@ -103,97 +123,52 @@ public class AuthProvider : BaseService, IAuthProvider
         return new TokensDTO(accessToken, refreshToken);
     }
 
-    public async Task<Response> RegisterAsync(UserRegisterDTO userRegisterDTO, CancellationToken cancellationToken = default)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-
-        var validationResult = Validate(userRegisterDTO);
-        if (validationResult.IsFailure)
-        {
-            return Response.Failure(validationResult.Errors);
-        }
-
-        var userWithPassedEmail = await _userManager.FindByEmailAsync(userRegisterDTO.Email);
-        if (userWithPassedEmail is not null)
-        {
-            return Response.Failure(Errors.Auth.EmailAlreadyTaken);
-        }
-
-        var user = new User
-        {
-            Email = userRegisterDTO.Email.Trim(),
-            UserName = userRegisterDTO.Username.Trim(),
-        };
-
-        var creationResult = await _userManager.CreateAsync(user, userRegisterDTO.Password);
-        if (!creationResult.Succeeded)
-        {
-            return Response.Failure(creationResult.Errors.Select(e => new Error(e.Code, e.Description)));
-        }
-
-        var addedUser = await _userManager.FindByEmailAsync(user.Email);
-        await _userManager.AddToRoleAsync(user, DefaultRoles.User);
-        return Response.Success();
-    }
-
     public async Task<Response<string>> RefreshTokenAsync(TokensDTO tokensDTO, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
+        var validationResult = Validate(tokensDTO);
+        if (validationResult.IsFailure)
+        {
+            return Response.Failure<string>(validationResult.Errors);
+        }
 
-        var principal = GetClaimsPrincipalFromExpiredJwtToken(tokensDTO.AccessToken);
-        if (principal is null || principal.Identity is null || principal.Identity.IsAuthenticated is false)
+        var userId = GetUserIdFromJwtToken(tokensDTO.AccessToken);
+        var user = userId is null ? null : await _userManager.FindByIdAsync(userId.ToString()!);
+        bool accessTokenVerificationResult = user is not null 
+            && await _userManager.VerifyUserTokenAsync(user, TokenProviders.AccessTokenProvider.LoginProvider, TokenProviders.AccessTokenProvider.Name, tokensDTO.AccessToken);
+
+        if (userId is null || user is null || !accessTokenVerificationResult)
         {
             return Response.Failure<string>(Errors.Auth.InvalidAccessToken);
         }
 
-        var userId = Guid.Parse(principal.Claims.Single(e => e.Type == ClaimTypes.NameIdentifier).Value);
-        var refreshToken = await _dbContext
-            .UserTokens
-            .SingleOrDefaultAsync(e => e.UserId == userId
-            && e.LoginProvider == UserToken.RefreshTokenLoginProvider
-            && e.Name == UserToken.RefreshTokenName, cancellationToken);
+        bool refreshTokenVerificationResult = await _userManager.VerifyUserTokenAsync(
+            user, 
+            TokenProviders.RefreshTokenProvider.LoginProvider, 
+            TokenProviders.RefreshTokenProvider.Name, 
+            tokensDTO.RefreshToken);
 
-        if (refreshToken is null || refreshToken.Value != tokensDTO.RefreshToken)
+        if (!refreshTokenVerificationResult)
         {
             return Response.Failure<string>(Errors.Auth.InvalidRefreshToken);
         }
 
-        var currentDate = _clock.GetUtcNow();
-        if (refreshToken.ExpiryDate < currentDate)
-        {
-            return Response.Failure<string>(Errors.Auth.RefreshTokenExpired);
-        }
-
-        var user = await _userManager.FindByIdAsync(userId.ToString());
-        var newClaimsPrincipal = await _userClaimsPrincipalFactory.CreateAsync(user!);
-
-        string newJwtToken = _tokenProvider.GenerateAccessToken(newClaimsPrincipal);
-        return newJwtToken;
+        string newAccessToken = await _userManager.GenerateUserTokenAsync(user, TokenProviders.AccessTokenProvider.LoginProvider, TokenProviders.AccessTokenProvider.Name);
+        return newAccessToken;
     }
 
-    private ClaimsPrincipal? GetClaimsPrincipalFromExpiredJwtToken(string token)
+    private Guid? GetUserIdFromJwtToken(string token)
     {
-        var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtAuthOptions.SecretKey));
-
-        var tokenValidationParametrs = new TokenValidationParameters
-        {
-            ValidateIssuer = true,
-            ValidateAudience = true,
-            ValidateIssuerSigningKey = true,
-            ValidateLifetime = false,
-            ValidIssuer = _jwtAuthOptions.Issuer,
-            ValidAudience = _jwtAuthOptions.Audience,
-            IssuerSigningKey = signingKey,
-        };
-
         try
         {
             var handler = new JwtSecurityTokenHandler();
-            return handler.ValidateToken(token, tokenValidationParametrs, out _);
+            var securityToken = handler.ReadJwtToken(token);
+            string userIdString = securityToken.Subject ?? securityToken.Claims.Single(e => e.Type == ClaimTypes.NameIdentifier).Value;
+            return Guid.Parse(userIdString);
         }
-        catch (Exception ex)
+        catch(Exception ex)
         {
-            _logger.LogError(ex, "Something went wrong when jwt token validating.");
+            _logger.LogError(ex, "Something went wrong while getting user id from jwt token.");
             return null;
         }
     }

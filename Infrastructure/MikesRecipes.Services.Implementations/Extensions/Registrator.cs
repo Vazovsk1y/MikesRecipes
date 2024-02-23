@@ -10,6 +10,7 @@ using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using MikesRecipes.Services.Implementations.Constants;
 
 namespace MikesRecipes.Services.Implementations;
 
@@ -21,7 +22,6 @@ public static class Registrator
         services.AddScoped<IProductService, ProductService>();
         services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
         services.AddScoped<IAuthProvider, AuthProvider>();
-        services.AddScoped<ITokenProvider, TokenProvider>();
         services.AddScoped<IClock, Clock>();
 
         services.AddIdentity<User, Role>(e =>
@@ -44,6 +44,8 @@ public static class Registrator
             e.ClaimsIdentity.EmailClaimType = JwtRegisteredClaimNames.Email;
         })
         .AddEntityFrameworkStores<MikesRecipesDbContext>()
+        .AddTokenProvider<RefreshTokenProvider>(TokenProviders.RefreshTokenProvider.LoginProvider)
+        .AddTokenProvider<AccessTokenProvider>(TokenProviders.AccessTokenProvider.LoginProvider)
         .AddDefaultTokenProviders();
 
         services.AddAuthenticationWithJwtBearer(configuration);
@@ -53,10 +55,10 @@ public static class Registrator
 
     private static IServiceCollection AddAuthenticationWithJwtBearer(this IServiceCollection collection, IConfiguration configuration)
     {
-        collection.Configure<JwtAuthOptions>(configuration.GetSection(JwtAuthOptions.SectionName));
-        var jwtOptions = configuration.GetSection(JwtAuthOptions.SectionName).Get<JwtAuthOptions>()!;
+        collection.Configure<AuthOptions>(configuration.GetSection(AuthOptions.SectionName));
+        var authOptions = configuration.GetSection(AuthOptions.SectionName).Get<AuthOptions>()!;
 
-        var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.SecretKey));
+        var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(authOptions.JwtSecretKey));
 
         collection
         .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -68,10 +70,10 @@ public static class Registrator
                 ValidateAudience = true,
                 ValidateLifetime = true,
                 ValidateIssuerSigningKey = true,
-                ValidIssuer = jwtOptions.Issuer,
-                ValidAudience = jwtOptions.Audience,
+                ValidIssuer = authOptions.JwtIssuer,
+                ValidAudience = authOptions.JwtAudience,
                 IssuerSigningKey = signingKey,
-                ClockSkew = TimeSpan.FromMinutes(jwtOptions.SkewMinutesCount),
+                ClockSkew = TimeSpan.FromMinutes(authOptions.JwtSkewMinutesCount),
             };
         });
 

@@ -1,6 +1,6 @@
 ﻿using MikesRecipes.Domain.Shared;
 
-namespace MikesRecipes.Services.Implementations;
+namespace MikesRecipes.Services.Implementations.Constants;
 
 public static class Errors
 {
@@ -14,8 +14,6 @@ public static class Errors
         public static readonly Error InvalidEmailOrPassword = new($"{CodeBase}.{nameof(InvalidEmailOrPassword)}", "Invalid email or password.");
 
         public static readonly Error UserLockedOut = new($"{CodeBase}.{nameof(UserLockedOut)}", "You have reached the maximum number of login attempts try again later.");
-
-        public static readonly Error EmailAlreadyTaken = new($"{CodeBase}.{nameof(EmailAlreadyTaken)}", "Email is already taken.");
 
         public static readonly Error InvalidAccessToken = new($"{CodeBase}.{nameof(InvalidAccessToken)}", "Invalid access token.");
 
