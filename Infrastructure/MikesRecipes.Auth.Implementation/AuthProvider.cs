@@ -3,21 +3,24 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using MikesRecipes.Auth.Contracts;
+using MikesRecipes.Auth.Implementation.Constants;
 using MikesRecipes.DAL;
 using MikesRecipes.Domain.Constants;
 using MikesRecipes.Domain.Models;
 using MikesRecipes.Domain.Shared;
-using MikesRecipes.Services.Implementation.Constants;
+using MikesRecipes.Framework;
+using MikesRecipes.Framework.Interfaces;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using static MikesRecipes.Services.Contracts.Auth;
 
-namespace MikesRecipes.Services.Implementation;
+namespace MikesRecipes.Auth.Implementation;
 
 public class AuthProvider : BaseService, IAuthProvider
 {
     private readonly UserManager<User> _userManager;
     private readonly AuthOptions _authOptions;
+    private readonly MikesRecipesDbContext _dbContext;
 
     public AuthProvider(
         IClock clock, 
@@ -25,10 +28,11 @@ public class AuthProvider : BaseService, IAuthProvider
         MikesRecipesDbContext dbContext, 
         IServiceScopeFactory serviceScopeFactory,
         UserManager<User> userManager, 
-        IOptions<AuthOptions> authOptions) : base(clock, logger, dbContext, serviceScopeFactory)
+        IOptions<AuthOptions> authOptions) : base(clock, logger, serviceScopeFactory)
     {
         _userManager = userManager;
         _authOptions = authOptions.Value;
+        _dbContext = dbContext;
     }
 
     public async Task<Response> RegisterAsync(UserRegisterDTO userRegisterDTO, CancellationToken cancellationToken = default)
@@ -71,18 +75,18 @@ public class AuthProvider : BaseService, IAuthProvider
         var user = await _userManager.FindByEmailAsync(userLoginDTO.Email);
         if (user is null)
         {
-            return Response.Failure<TokensDTO>(Errors.Auth.InvalidEmailOrPassword);
+            return Response.Failure<TokensDTO>(Errors.InvalidEmailOrPassword);
         }
 
         if (await _userManager.IsLockedOutAsync(user))
         {
-            return Response.Failure<TokensDTO>(Errors.Auth.UserLockedOut);
+            return Response.Failure<TokensDTO>(Errors.UserLockedOut);
         }
 
         if (!await _userManager.CheckPasswordAsync(user, userLoginDTO.Password))
         {
             await _userManager.AccessFailedAsync(user);
-            return Response.Failure<TokensDTO>(Errors.Auth.InvalidEmailOrPassword);
+            return Response.Failure<TokensDTO>(Errors.InvalidEmailOrPassword);
         }
 
         string accessToken = await _userManager.GenerateUserTokenAsync(user, TokenProviders.AccessTokenProvider.LoginProvider, TokenProviders.AccessTokenProvider.Name);
@@ -139,7 +143,7 @@ public class AuthProvider : BaseService, IAuthProvider
 
         if (userId is null || user is null || !accessTokenVerificationResult)
         {
-            return Response.Failure<string>(Errors.Auth.InvalidAccessToken);
+            return Response.Failure<string>(Errors.InvalidAccessToken);
         }
 
         bool refreshTokenVerificationResult = await _userManager.VerifyUserTokenAsync(
@@ -150,7 +154,7 @@ public class AuthProvider : BaseService, IAuthProvider
 
         if (!refreshTokenVerificationResult)
         {
-            return Response.Failure<string>(Errors.Auth.InvalidRefreshToken);
+            return Response.Failure<string>(Errors.InvalidRefreshToken);
         }
 
         string newAccessToken = await _userManager.GenerateUserTokenAsync(user, TokenProviders.AccessTokenProvider.LoginProvider, TokenProviders.AccessTokenProvider.Name);

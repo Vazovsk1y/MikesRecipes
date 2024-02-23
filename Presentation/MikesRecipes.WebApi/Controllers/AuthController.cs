@@ -1,12 +1,13 @@
 ﻿using Asp.Versioning;
 using Microsoft.AspNetCore.Mvc;
-using MikesRecipes.Services;
+using MikesRecipes.Auth;
+using MikesRecipes.WebApi.Constants;
 using MikesRecipes.WebApi.Extensions;
 using MikesRecipes.WebApi.ViewModels;
 
 namespace MikesRecipes.WebApi.Controllers;
 
-[ApiVersion(Constants.ApiVersions.V1Dot0)]
+[ApiVersion(ApiVersions.V1Dot0)]
 public class AuthController(IAuthProvider authProvider) : BaseController
 {
     private readonly IAuthProvider _authProvider = authProvider;

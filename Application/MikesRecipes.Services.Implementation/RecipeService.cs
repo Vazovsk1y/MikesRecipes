@@ -1,10 +1,11 @@
-﻿using FluentValidation;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using MikesRecipes.DAL;
 using MikesRecipes.Domain.Models;
 using MikesRecipes.Domain.Shared;
+using MikesRecipes.Framework;
+using MikesRecipes.Framework.Interfaces;
 using MikesRecipes.Services.Contracts;
 using MikesRecipes.Services.Contracts.Common;
 using MikesRecipes.Services.Implementation.Extensions;
@@ -12,13 +13,13 @@ using System.Data;
 
 namespace MikesRecipes.Services.Implementation;
 
-public class RecipeService : BaseService, IRecipeService
+public class RecipeService : BaseApplicationService, IRecipeService
 {
     public RecipeService(
         IClock clock, 
         ILogger<BaseService> logger, 
         MikesRecipesDbContext dbContext, 
-        IServiceScopeFactory serviceScopeFactory) : base(clock, logger, dbContext, serviceScopeFactory)
+        IServiceScopeFactory serviceScopeFactory) : base(clock, logger, serviceScopeFactory, dbContext)
     {
     }
 

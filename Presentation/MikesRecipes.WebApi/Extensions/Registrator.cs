@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Models;
 using MikesRecipes.WebApi.Filters;
+using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace MikesRecipes.WebApi.Extensions;
 
@@ -9,10 +11,11 @@ public static class Registrator
     private static readonly string Description =
         $"JWT Authorization header using the {JwtBearerDefaults.AuthenticationScheme} scheme. \r\n\r\n Enter '{JwtBearerDefaults.AuthenticationScheme}' [space] [your token value].";
 
-    public static IServiceCollection AddSwaggerWithJwt(this IServiceCollection collection)
+    public static IServiceCollection AddSwaggerWithJwtAndVersioning(this IServiceCollection collection)
     {
-        return
-        collection.AddSwaggerGen(swagger =>
+        collection.AddTransient<IConfigureOptions<SwaggerGenOptions>, ConfigureSwaggerOptions>();
+
+        return collection.AddSwaggerGen(swagger =>
         {
             swagger.OperationFilter<SwaggerDefaultValuesFilter>();
 

@@ -2,27 +2,24 @@
 using FluentValidation.Results;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using MikesRecipes.DAL;
 using MikesRecipes.Domain.Shared;
+using MikesRecipes.Framework.Interfaces;
 
-namespace MikesRecipes.Services.Implementation;
+namespace MikesRecipes.Framework;
 
 public abstract class BaseService
 {
     protected readonly IClock _clock;
     protected readonly ILogger _logger;
-    protected readonly MikesRecipesDbContext _dbContext;
     protected readonly IServiceScopeFactory _serviceScopeFactory;
 
     protected BaseService(
         IClock clock, 
         ILogger<BaseService> logger, 
-        MikesRecipesDbContext dbContext, 
         IServiceScopeFactory serviceScopeFactory)
     {
         _clock = clock;
         _logger = logger;
-        _dbContext = dbContext;
         _serviceScopeFactory = serviceScopeFactory;
     }
 

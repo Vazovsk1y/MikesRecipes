@@ -3,19 +3,21 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using MikesRecipes.DAL;
 using MikesRecipes.Domain.Shared;
+using MikesRecipes.Framework;
+using MikesRecipes.Framework.Interfaces;
 using MikesRecipes.Services.Contracts;
 using MikesRecipes.Services.Implementation.Constants;
 using MikesRecipes.Services.Implementation.Extensions;
 
 namespace MikesRecipes.Services.Implementation;
 
-internal class ProductService : BaseService, IProductService
+internal class ProductService : BaseApplicationService, IProductService
 {
     public ProductService(
 		IClock clock, 
 		ILogger<BaseService> logger, 
 		MikesRecipesDbContext dbContext, 
-		IServiceScopeFactory serviceScopeFactory) : base(clock, logger, dbContext, serviceScopeFactory)
+		IServiceScopeFactory serviceScopeFactory) : base(clock, logger, serviceScopeFactory, dbContext)
     {
     }
 

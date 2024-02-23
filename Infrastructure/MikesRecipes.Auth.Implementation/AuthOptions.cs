@@ -1,4 +1,4 @@
-﻿namespace MikesRecipes.Services.Implementation;
+﻿namespace MikesRecipes.Auth.Implementation;
 
 public record AuthOptions
 {

@@ -2,9 +2,11 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using MikesRecipes.Auth.Implementation.Constants;
 using MikesRecipes.DAL;
 using MikesRecipes.Domain.Models;
-using MikesRecipes.Services.Implementation.Constants;
+using MikesRecipes.Framework;
+using MikesRecipes.Framework.Interfaces;
 using System.Security.Cryptography;
 
 namespace MikesRecipes.Services.Implementation;

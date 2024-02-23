@@ -4,11 +4,12 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using MikesRecipes.Domain.Models;
+using MikesRecipes.Framework.Interfaces;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 
-namespace MikesRecipes.Services.Implementation;
+namespace MikesRecipes.Auth.Implementation;
 
 public class AccessTokenProvider : IUserTwoFactorTokenProvider<User>
 {
@@ -17,7 +18,7 @@ public class AccessTokenProvider : IUserTwoFactorTokenProvider<User>
     private readonly IServiceScopeFactory _serviceScopeFactory;
 
     public AccessTokenProvider(
-        ILogger<BaseService> logger,
+        ILogger<AccessTokenProvider> logger,
         IServiceScopeFactory serviceScopeFactory,
         IOptions<AuthOptions> authOptions)
     {
@@ -61,7 +62,7 @@ public class AccessTokenProvider : IUserTwoFactorTokenProvider<User>
         using var scope = _serviceScopeFactory.CreateScope();
         var clock = scope.ServiceProvider.GetRequiredService<IClock>();
 
-        var expiredDate = clock.GetUtcNow().AddMinutes(_authOptions.JwtTokenLifetimeMinutesCount);
+        var expiryDate = clock.GetUtcNow().AddMinutes(_authOptions.JwtTokenLifetimeMinutesCount);
         var signingCredentials = new SigningCredentials(
             new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_authOptions.JwtSecretKey)),
             SecurityAlgorithms.HmacSha256
@@ -72,7 +73,7 @@ public class AccessTokenProvider : IUserTwoFactorTokenProvider<User>
             _authOptions.JwtAudience,
             claims,
             null,
-            expiredDate.DateTime,
+            expiryDate.DateTime,
             signingCredentials
             );
 

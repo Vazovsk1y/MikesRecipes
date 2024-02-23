@@ -1,8 +1,11 @@
 using Asp.Versioning;
 using Microsoft.Extensions.Options;
+using MikesRecipes.Auth.Implementation.Extensions;
 using MikesRecipes.DAL.Extensions;
+using MikesRecipes.Framework.Extensions;
 using MikesRecipes.Services.Implementation;
 using MikesRecipes.WebApi;
+using MikesRecipes.WebApi.Constants;
 using MikesRecipes.WebApi.Extensions;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
@@ -13,10 +16,11 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.Configure<RouteOptions>(options => options.LowercaseUrls = true);
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddTransient<IConfigureOptions<SwaggerGenOptions>, ConfigureSwaggerOptions>();
-builder.Services.AddSwaggerWithJwt();
+builder.Services.AddSwaggerWithJwtAndVersioning();
 
-builder.Services.AddApplicationLayer(builder.Configuration);
+builder.Services.AddApplicationLayer();
+builder.Services.AddAuth(builder.Configuration);
+builder.Services.AddFramework();
 builder.Services.AddDataAccessLayer(builder.Configuration);
 
 builder.Services.AddExceptionHandler<ExceptionsHandler>();
@@ -24,7 +28,7 @@ builder.Services.AddProblemDetails();
 
 builder.Services.AddApiVersioning(e =>
 {
-    e.DefaultApiVersion = new ApiVersion(Constants.ApiVersions.V1Dot0);
+    e.DefaultApiVersion = new ApiVersion(ApiVersions.V1Dot0);
     e.AssumeDefaultVersionWhenUnspecified = true;
     e.ReportApiVersions = true;
     e.ApiVersionReader = new UrlSegmentApiVersionReader();

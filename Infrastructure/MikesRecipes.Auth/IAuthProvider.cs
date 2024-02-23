@@ -1,7 +1,7 @@
-﻿using MikesRecipes.Domain.Shared;
-using static MikesRecipes.Services.Contracts.Auth;
+﻿using MikesRecipes.Auth.Contracts;
+using MikesRecipes.Domain.Shared;
 
-namespace MikesRecipes.Services;
+namespace MikesRecipes.Auth;
 
 public interface IAuthProvider
 {

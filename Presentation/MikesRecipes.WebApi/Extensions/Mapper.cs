@@ -1,7 +1,7 @@
-﻿using MikesRecipes.Domain.Models;
+﻿using MikesRecipes.Auth.Contracts;
+using MikesRecipes.Domain.Models;
 using MikesRecipes.Services.Contracts;
 using MikesRecipes.WebApi.ViewModels;
-using static MikesRecipes.Services.Contracts.Auth;
 
 namespace MikesRecipes.WebApi.Extensions;
 

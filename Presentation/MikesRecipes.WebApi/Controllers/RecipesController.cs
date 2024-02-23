@@ -2,13 +2,14 @@
 using Microsoft.AspNetCore.Mvc;
 using MikesRecipes.Services;
 using MikesRecipes.Services.Contracts.Common;
+using MikesRecipes.WebApi.Constants;
 using MikesRecipes.WebApi.Extensions;
 using MikesRecipes.WebApi.ViewModels;
 using System.ComponentModel.DataAnnotations;
 
 namespace MikesRecipes.WebApi.Controllers;
 
-[ApiVersion(Constants.ApiVersions.V1Dot0)]
+[ApiVersion(ApiVersions.V1Dot0)]
 public class RecipesController(IRecipeService recipeService) : BaseController
 {
     private readonly IRecipeService _recipeService = recipeService;

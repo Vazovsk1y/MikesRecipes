@@ -1,4 +1,6 @@
-﻿namespace MikesRecipes.Services.Implementation;
+﻿using MikesRecipes.Framework.Interfaces;
+
+namespace MikesRecipes.Framework;
 
 public class Clock : IClock
 {

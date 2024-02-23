@@ -1,4 +1,4 @@
-﻿namespace MikesRecipes.Services.Implementation.Constants;
+﻿namespace MikesRecipes.Auth.Implementation.Constants;
 
 public static class TokenProviders
 {
