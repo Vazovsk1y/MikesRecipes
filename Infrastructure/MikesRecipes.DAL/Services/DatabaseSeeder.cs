@@ -11,9 +11,9 @@ using Microsoft.Extensions.Logging;
 using System.Reflection;
 using MikesRecipes.Domain.Constants;
 
-namespace MikesRecipes.DAL.Extensions;
+namespace MikesRecipes.DAL.Services;
 
-public static class DatabaseSeeder
+public class DatabaseSeeder : IDatabaseSeeder
 {
     #region --Private classes--
 #nullable disable
@@ -51,39 +51,57 @@ public static class DatabaseSeeder
 
     private const string RecipesFileResourseName = "MikesRecipes.DAL.povarenok_recipes_2021_06_16.csv";
 
-    public static void Seed(this MikesRecipesDbContext dbContext, ILogger logger)
+    private readonly MikesRecipesDbContext _dbContext;
+    private readonly ILogger _logger;
+
+    public DatabaseSeeder(MikesRecipesDbContext dbContext, ILogger<DatabaseSeeder> logger)
     {
-        if (!dbContext.IsAbleToSeed())
+        _dbContext = dbContext;
+        _logger = logger;
+    }
+
+    public void Seed()
+    {
+        if (!IsAbleToSeed())
         {
             return;
         }
 
         var stopwatch = new Stopwatch();
 
-        logger.LogInformation("Data seeding started.");
-        stopwatch.Start();
+        _logger.LogInformation("Data seeding started.");
 
-        dbContext.InsertData();
-        dbContext.SaveChanges();
+        stopwatch.Start();
+        using var transaction = _dbContext.Database.BeginTransaction();
+        try
+        {
+            InsertData();
+            transaction.Commit();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Something went wrong.");
+            transaction.Rollback();
+        }
 
         stopwatch.Stop();
-        logger.LogInformation("Data seeding ended. Times(seconds) elapsed {TotalSecondsElapsed}", stopwatch.Elapsed.TotalSeconds);
+        _logger.LogInformation("Data seeding ended. Times(seconds) elapsed [{TotalSecondsElapsed}].", stopwatch.Elapsed.TotalSeconds);
     }
 
-    private static bool IsAbleToSeed(this MikesRecipesDbContext dbContext)
+    private bool IsAbleToSeed()
     {
         bool[] results = new[]
         {
-            dbContext.Products.Any(),
-            dbContext.Ingredients.Any(),
-            dbContext.Products.Any(),
-            dbContext.Roles.Any(),
+            _dbContext.Products.Any(),
+            _dbContext.Ingredients.Any(),
+            _dbContext.Products.Any(),
+            _dbContext.Roles.Any(),
         };
 
         return results.All(e => e is false);
     }
 
-    private static void InsertData(this MikesRecipesDbContext dbContext)
+    private void InsertData()
     {
         using var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(RecipesFileResourseName);
         using var reader = new StreamReader(stream!);
@@ -130,13 +148,13 @@ public static class DatabaseSeeder
         }
 
 
-        dbContext.Products.AddRange(productsToInsert);
-        dbContext.Recipes.AddRange(recipesToInsert);
-        dbContext.Ingredients.AddRange(ingredientsToInsert);
-        dbContext.AddRoles();
+        _dbContext.Products.BulkInsert(productsToInsert);
+        _dbContext.Recipes.BulkInsert(recipesToInsert);
+        _dbContext.Ingredients.BulkInsert(ingredientsToInsert);
+        AddRoles();
     }
 
-    private static void AddRoles(this MikesRecipesDbContext dbContext)
+    private void AddRoles()
     {
         var roles = new Role[] {
         new()
@@ -152,6 +170,7 @@ public static class DatabaseSeeder
            NormalizedName = DefaultRoles.User.ToUpper(),
         }};
 
-        dbContext.Roles.AddRange(roles);
+        _dbContext.Roles.AddRange(roles);
+        _dbContext.SaveChanges();
     }
 }

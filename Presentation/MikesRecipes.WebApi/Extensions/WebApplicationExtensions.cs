@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using MikesRecipes.DAL;
-using MikesRecipes.DAL.Extensions;
+using MikesRecipes.DAL.Services;
 
 namespace MikesRecipes.WebApi.Extensions;
 
@@ -16,8 +16,7 @@ public static class WebApplicationExtensions
 	public static void SeedDatabase(this WebApplication application)
 	{
 		using var scope = application.Services.CreateScope();
-		var dbContext = scope.ServiceProvider.GetRequiredService<MikesRecipesDbContext>();
-		var logger = scope.ServiceProvider.GetRequiredService<ILogger<MikesRecipesDbContext>>();
-		dbContext.Seed(logger);
+		var seeder = scope.ServiceProvider.GetRequiredService<IDatabaseSeeder>();
+		seeder.Seed();
 	}
 }
