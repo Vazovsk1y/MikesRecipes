@@ -16,13 +16,19 @@ internal class ProductService : BaseApplicationService, IProductService
     public ProductService(
 		IClock clock, 
 		ILogger<BaseService> logger, 
+		IServiceScopeFactory serviceScopeFactory,
 		MikesRecipesDbContext dbContext, 
-		IServiceScopeFactory serviceScopeFactory) : base(clock, logger, serviceScopeFactory, dbContext)
+		ICurrentUserProvider currentUserProvider) : base(clock, logger, serviceScopeFactory, dbContext, currentUserProvider)
     {
     }
 
     public async Task<Response<IReadOnlyCollection<ProductDTO>>> GetByTitleAsync(string searchTerm, CancellationToken cancellationToken = default)
 	{
+		if (!_currentUserProvider.IsAuthenticated)
+		{
+			return Response.Failure<IReadOnlyCollection<ProductDTO>>(Errors.Unauthorized);
+		}
+
 		if (string.IsNullOrWhiteSpace(searchTerm))
 		{
 			return Response.Failure<IReadOnlyCollection<ProductDTO>>(Errors.NullOrWhiteSpaceString("Search term"));

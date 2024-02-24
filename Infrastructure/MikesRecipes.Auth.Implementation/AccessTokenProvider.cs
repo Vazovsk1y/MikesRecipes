@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using MikesRecipes.Auth.Implementation.Constants;
 using MikesRecipes.Domain.Models;
 using MikesRecipes.Framework.Interfaces;
 using System.IdentityModel.Tokens.Jwt;
@@ -37,11 +38,11 @@ public class AccessTokenProvider : IUserTwoFactorTokenProvider<User>
 
     public async Task<string> GenerateAsync(string purpose, UserManager<User> manager, User user)
     {
-        using var scope = _serviceScopeFactory.CreateScope();
-        var userClaimsPrincipalFactory = scope.ServiceProvider.GetRequiredService<IUserClaimsPrincipalFactory<User>>();
-
         ArgumentNullException.ThrowIfNull(manager);
         ArgumentNullException.ThrowIfNull(user);
+
+        using var scope = _serviceScopeFactory.CreateScope();
+        var userClaimsPrincipalFactory = scope.ServiceProvider.GetRequiredService<IUserClaimsPrincipalFactory<User>>();
 
         var claimsPrincipal = await userClaimsPrincipalFactory.CreateAsync(user);
         return GenerateJwtAccessToken(claimsPrincipal.Claims);
@@ -51,7 +52,16 @@ public class AccessTokenProvider : IUserTwoFactorTokenProvider<User>
     {
         ArgumentNullException.ThrowIfNull(manager);
         ArgumentNullException.ThrowIfNull(user);
-        ArgumentException.ThrowIfNullOrEmpty(token);
+
+        if (purpose != TokenProviders.AccessTokenProvider.Name)
+        {
+            throw new InvalidOperationException($"Invalid access token purpose.");
+        }
+
+        if (string.IsNullOrWhiteSpace(token))
+        {
+            return Task.FromResult(false);
+        }
 
         var claimsPrincipal = GetClaimsPrincipalFromJwtToken(token);
         return Task.FromResult(claimsPrincipal is not null && user.Id == Guid.Parse(claimsPrincipal.Claims.Single(e => e.Type == ClaimTypes.NameIdentifier).Value));
@@ -62,7 +72,7 @@ public class AccessTokenProvider : IUserTwoFactorTokenProvider<User>
         using var scope = _serviceScopeFactory.CreateScope();
         var clock = scope.ServiceProvider.GetRequiredService<IClock>();
 
-        var expiryDate = clock.GetUtcNow().AddMinutes(_authOptions.JwtTokenLifetimeMinutesCount);
+        var expiryDate = clock.GetDateTimeUtcNow().AddMinutes(_authOptions.JwtTokenLifetimeMinutesCount);
         var signingCredentials = new SigningCredentials(
             new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_authOptions.JwtSecretKey)),
             SecurityAlgorithms.HmacSha256
@@ -73,7 +83,7 @@ public class AccessTokenProvider : IUserTwoFactorTokenProvider<User>
             _authOptions.JwtAudience,
             claims,
             null,
-            expiryDate.DateTime,
+            expiryDate,
             signingCredentials
             );
 

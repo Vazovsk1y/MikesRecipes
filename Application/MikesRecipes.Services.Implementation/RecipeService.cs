@@ -8,6 +8,7 @@ using MikesRecipes.Framework;
 using MikesRecipes.Framework.Interfaces;
 using MikesRecipes.Services.Contracts;
 using MikesRecipes.Services.Contracts.Common;
+using MikesRecipes.Services.Implementation.Constants;
 using MikesRecipes.Services.Implementation.Extensions;
 using System.Data;
 
@@ -18,14 +19,20 @@ public class RecipeService : BaseApplicationService, IRecipeService
     public RecipeService(
         IClock clock, 
         ILogger<BaseService> logger, 
+        IServiceScopeFactory serviceScopeFactory,
         MikesRecipesDbContext dbContext, 
-        IServiceScopeFactory serviceScopeFactory) : base(clock, logger, serviceScopeFactory, dbContext)
+        ICurrentUserProvider currentUserProvider) : base(clock, logger, serviceScopeFactory, dbContext, currentUserProvider)
     {
     }
 
     public async Task<Response<RecipesPage>> GetAsync(PagingOptions pagingOptions, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
+
+        if (!_currentUserProvider.IsAuthenticated)
+        {
+            return Response.Failure<RecipesPage>(Errors.Unauthorized);
+        }
 
         var validationResult = Validate(pagingOptions);
         if (validationResult.IsFailure)
@@ -53,6 +60,11 @@ public class RecipeService : BaseApplicationService, IRecipeService
         CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
+
+        if (!_currentUserProvider.IsAuthenticated)
+        {
+            return Response.Failure<RecipesPage>(Errors.Unauthorized);
+        }
 
         var validationResult = Validate(pagingOptions, filter);
         if (validationResult.IsFailure)

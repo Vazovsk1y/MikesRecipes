@@ -1,4 +1,5 @@
 ﻿using Asp.Versioning;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MikesRecipes.Services;
 using MikesRecipes.WebApi.Constants;
@@ -7,6 +8,7 @@ using System.ComponentModel.DataAnnotations;
 namespace MikesRecipes.WebApi.Controllers;
 
 [ApiVersion(ApiVersions.V1Dot0)]
+[Authorize]
 public class ProductsController(IProductService productService) : BaseController
 {
     private readonly IProductService _productService = productService;

@@ -22,7 +22,7 @@ public static class Registrator
         services.AddScoped<IAuthProvider, AuthProvider>();
         services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
 
-        services.AddIdentity<User, Role>(e =>
+        services.AddIdentityCore<User>(e =>
         {
             e.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(10);
             e.Lockout.MaxFailedAccessAttempts = 10;
@@ -41,25 +41,22 @@ public static class Registrator
             e.ClaimsIdentity.RoleClaimType = ClaimTypes.Role;
             e.ClaimsIdentity.EmailClaimType = JwtRegisteredClaimNames.Email;
         })
+        .AddRoles<Role>()
+        .AddSignInManager<SignInManager<User>>()
         .AddEntityFrameworkStores<MikesRecipesDbContext>()
         .AddTokenProvider<RefreshTokenProvider>(TokenProviders.RefreshTokenProvider.LoginProvider)
         .AddTokenProvider<AccessTokenProvider>(TokenProviders.AccessTokenProvider.LoginProvider)
         .AddDefaultTokenProviders();
 
-        services.AddAuthenticationWithJwtBearer(configuration);
-
-        return services;
-    }
-
-    private static IServiceCollection AddAuthenticationWithJwtBearer(this IServiceCollection collection, IConfiguration configuration)
-    {
-        collection.Configure<AuthOptions>(configuration.GetSection(AuthOptions.SectionName));
+        services.Configure<AuthOptions>(configuration.GetSection(AuthOptions.SectionName));
         var authOptions = configuration.GetSection(AuthOptions.SectionName).Get<AuthOptions>()!;
-
         var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(authOptions.JwtSecretKey));
 
-        collection
-        .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+        services.AddAuthentication(e =>
+        {
+            e.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+            e.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+        })
         .AddJwtBearer(options =>
         {
             options.TokenValidationParameters = new TokenValidationParameters
@@ -75,6 +72,6 @@ public static class Registrator
             };
         });
 
-        return collection;
+        return services;
     }
 }

@@ -2,10 +2,15 @@
 
 namespace MikesRecipes.Framework;
 
-public class Clock : IClock
+public class Clock : TimeProvider, IClock
 {
-    public DateTimeOffset GetUtcNow()
+    public DateTimeOffset GetDateTimeOffsetUtcNow()
     {
-        return DateTimeOffset.UtcNow;
+        return GetUtcNow();
+    }
+
+    public DateTime GetDateTimeUtcNow()
+    {
+        return GetUtcNow().UtcDateTime;
     }
 }

@@ -98,7 +98,7 @@ public class AuthProvider : BaseService, IAuthProvider
             && e.LoginProvider == TokenProviders.RefreshTokenProvider.LoginProvider
             && e.Name == TokenProviders.RefreshTokenProvider.Name, cancellationToken);
 
-        var currentDate = _clock.GetUtcNow();
+        var currentDate = _clock.GetDateTimeOffsetUtcNow();
         if (existingRefreshToken is not null)
         {
             existingRefreshToken.ExpiryDate = currentDate.AddDays(_authOptions.RefreshTokenLifetimeDaysCount);

@@ -2,5 +2,7 @@
 
 public interface IClock
 {
-    DateTimeOffset GetUtcNow();
+    DateTimeOffset GetDateTimeOffsetUtcNow();
+
+    DateTime GetDateTimeUtcNow();
 }

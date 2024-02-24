@@ -44,17 +44,20 @@ public class RefreshTokenProvider : IUserTwoFactorTokenProvider<User>
     {
         ArgumentNullException.ThrowIfNull(manager);
         ArgumentNullException.ThrowIfNull(user);
-        ArgumentException.ThrowIfNullOrEmpty(token);
-        ArgumentException.ThrowIfNullOrEmpty(purpose);
-
-        using var scope = _serviceScopeFactory.CreateScope();
-        var clock = scope.ServiceProvider.GetRequiredService<IClock>();
-        var dbContext = scope.ServiceProvider.GetRequiredService<MikesRecipesDbContext>();
 
         if (purpose != TokenProviders.RefreshTokenProvider.Name)
         {
             throw new InvalidOperationException("Invalid purpose for refresh token.");
         }
+
+        if (string.IsNullOrWhiteSpace(token))
+        {
+            return false;
+        }
+
+        using var scope = _serviceScopeFactory.CreateScope();
+        var clock = scope.ServiceProvider.GetRequiredService<IClock>();
+        var dbContext = scope.ServiceProvider.GetRequiredService<MikesRecipesDbContext>();
 
         var refreshToken = await dbContext
             .UserTokens
@@ -62,7 +65,7 @@ public class RefreshTokenProvider : IUserTwoFactorTokenProvider<User>
             && e.LoginProvider == TokenProviders.RefreshTokenProvider.LoginProvider
             && e.Name == purpose);
 
-        var currentDate = clock.GetUtcNow();
+        var currentDate = clock.GetDateTimeOffsetUtcNow();
         if (refreshToken is null || refreshToken.Value != token || refreshToken.ExpiryDate < currentDate)
         {
             return false;

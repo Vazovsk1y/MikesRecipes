@@ -1,5 +1,4 @@
 using Asp.Versioning;
-using Microsoft.Extensions.Options;
 using MikesRecipes.Auth.Implementation.Extensions;
 using MikesRecipes.DAL.Extensions;
 using MikesRecipes.Framework.Extensions;
@@ -7,7 +6,6 @@ using MikesRecipes.Services.Implementation;
 using MikesRecipes.WebApi;
 using MikesRecipes.WebApi.Constants;
 using MikesRecipes.WebApi.Extensions;
-using Swashbuckle.AspNetCore.SwaggerGen;
 
 var builder = WebApplication.CreateBuilder(args);
 
