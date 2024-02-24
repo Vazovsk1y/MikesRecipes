@@ -21,18 +21,21 @@ public class AuthProvider : BaseService, IAuthProvider
     private readonly UserManager<User> _userManager;
     private readonly AuthOptions _authOptions;
     private readonly MikesRecipesDbContext _dbContext;
+    private readonly IUserConfirmation<User> _confirmation;
 
     public AuthProvider(
-        IClock clock, 
-        ILogger<BaseService> logger, 
-        MikesRecipesDbContext dbContext, 
+        IClock clock,
+        ILogger<BaseService> logger,
+        MikesRecipesDbContext dbContext,
         IServiceScopeFactory serviceScopeFactory,
-        UserManager<User> userManager, 
-        IOptions<AuthOptions> authOptions) : base(clock, logger, serviceScopeFactory)
+        UserManager<User> userManager,
+        IOptions<AuthOptions> authOptions,
+        IUserConfirmation<User> confirmation) : base(clock, logger, serviceScopeFactory)
     {
         _userManager = userManager;
         _authOptions = authOptions.Value;
         _dbContext = dbContext;
+        _confirmation = confirmation;
     }
 
     public async Task<Response> RegisterAsync(UserRegisterDTO userRegisterDTO, CancellationToken cancellationToken = default)
@@ -78,15 +81,10 @@ public class AuthProvider : BaseService, IAuthProvider
             return Response.Failure<TokensDTO>(Errors.InvalidEmailOrPassword);
         }
 
-        if (await _userManager.IsLockedOutAsync(user))
+        var canLoginResult = await CanLogin(user, userLoginDTO.Password);
+        if (canLoginResult.IsFailure)
         {
-            return Response.Failure<TokensDTO>(Errors.UserLockedOut);
-        }
-
-        if (!await _userManager.CheckPasswordAsync(user, userLoginDTO.Password))
-        {
-            await _userManager.AccessFailedAsync(user);
-            return Response.Failure<TokensDTO>(Errors.InvalidEmailOrPassword);
+            return Response.Failure<TokensDTO>(canLoginResult.Errors);
         }
 
         string accessToken = await _userManager.GenerateUserTokenAsync(user, TokenProviders.AccessTokenProvider.LoginProvider, TokenProviders.AccessTokenProvider.Name);
@@ -118,11 +116,7 @@ public class AuthProvider : BaseService, IAuthProvider
             _dbContext.UserTokens.Add(token);
         }
 
-        if (user.AccessFailedCount > 0)
-        {
-            await _userManager.ResetAccessFailedCountAsync(user);
-        }
-
+        await _userManager.ResetAccessFailedCountAsync(user);
         await _dbContext.SaveChangesAsync(cancellationToken);
         return new TokensDTO(accessToken, refreshToken);
     }
@@ -175,5 +169,36 @@ public class AuthProvider : BaseService, IAuthProvider
             _logger.LogError(ex, "Something went wrong while getting user id from jwt token.");
             return null;
         }
+    }
+
+    private async Task<Response> CanLogin(User user, string password)
+    {
+        if (_userManager.Options.SignIn.RequireConfirmedEmail && !(await _userManager.IsEmailConfirmedAsync(user)))
+        {
+            return Response.Failure(Errors.ConfirmationRequiredFor(nameof(User.Email)));
+        }
+
+        if (_userManager.Options.SignIn.RequireConfirmedPhoneNumber && !(await _userManager.IsPhoneNumberConfirmedAsync(user)))
+        {
+            return Response.Failure(Errors.ConfirmationRequiredFor(nameof(User.PhoneNumber)));
+        }
+
+        if (_userManager.Options.SignIn.RequireConfirmedAccount && !(await _confirmation.IsConfirmedAsync(_userManager, user)))
+        {
+            return Response.Failure(Errors.ConfirmationRequiredFor("Account"));
+        }
+
+        if (await _userManager.IsLockedOutAsync(user))
+        {
+            return Response.Failure<TokensDTO>(Errors.UserLockedOut);
+        }
+
+        if (!await _userManager.CheckPasswordAsync(user, password))
+        {
+            await _userManager.AccessFailedAsync(user);
+            return Response.Failure<TokensDTO>(Errors.InvalidEmailOrPassword);
+        }
+
+        return Response.Success();
     }
 }

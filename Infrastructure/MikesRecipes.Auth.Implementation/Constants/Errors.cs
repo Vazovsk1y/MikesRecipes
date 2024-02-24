@@ -15,4 +15,6 @@ public static class Errors
     public static readonly Error InvalidRefreshToken = new($"{CodeBase}.{nameof(InvalidRefreshToken)}", "Refresh token was not found or invalid.");
 
     public static readonly Error RefreshTokenExpired = new($"{CodeBase}.{nameof(RefreshTokenExpired)}", "Refresh token has expired.");
+
+    public static Error ConfirmationRequiredFor(string confirmationFor) => new($"{CodeBase}.ConfirmationRequired", $"{confirmationFor} is not confirmed.");
 }
