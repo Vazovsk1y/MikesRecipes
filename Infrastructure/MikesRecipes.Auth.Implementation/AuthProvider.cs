@@ -54,14 +54,26 @@ public class AuthProvider : BaseService, IAuthProvider
             UserName = userRegisterDTO.Username.Trim(),
         };
 
-        var creationResult = await _userManager.CreateAsync(user, userRegisterDTO.Password);
-        if (!creationResult.Succeeded)
+        using var transaction = _dbContext.Database.BeginTransaction();
+        try
         {
-            return Response.Failure(creationResult.Errors.Select(e => new Error(e.Code, e.Description)));
-        }
+            var creationResult = await _userManager.CreateAsync(user, userRegisterDTO.Password);
+            if (!creationResult.Succeeded)
+            {
+                return Response.Failure(creationResult.Errors.Select(e => new Error(e.Code, e.Description)));
+            }
 
-        var addedUser = await _userManager.FindByEmailAsync(user.Email);
-        await _userManager.AddToRoleAsync(user, DefaultRoles.User);
+            var addedUser = await _userManager.FindByEmailAsync(user.Email);
+            await _userManager.AddToRoleAsync(user, DefaultRoles.User);
+            transaction.Commit();
+        }
+        catch (Exception ex)
+        {
+            transaction.Rollback();
+            _logger.LogError(ex, "Something went wrong during user registration.");
+            return Response.Failure(Errors.RegistrationFailed);
+        }
+        
         return Response.Success();
     }
 

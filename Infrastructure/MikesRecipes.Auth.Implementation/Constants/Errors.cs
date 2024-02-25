@@ -16,5 +16,7 @@ public static class Errors
 
     public static readonly Error RefreshTokenExpired = new($"{CodeBase}.{nameof(RefreshTokenExpired)}", "Refresh token has expired.");
 
+    public static readonly Error RegistrationFailed = new($"{CodeBase}.{nameof(RegistrationFailed)}", "Registration failed.");
+
     public static Error ConfirmationRequiredFor(string confirmationFor) => new($"{CodeBase}.ConfirmationRequired", $"{confirmationFor} is not confirmed.");
 }
