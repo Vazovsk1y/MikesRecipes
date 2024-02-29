@@ -20,6 +20,7 @@ public static class Registrator
     public static IServiceCollection AddAuth(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddScoped<IAuthProvider, AuthProvider>();
+        services.AddScoped<IEmailConfirmationsSender, EmailConfirmationsSender>();
         services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
 
         services.AddIdentityCore<User>(e =>
@@ -48,9 +49,14 @@ public static class Registrator
         .AddTokenProvider<AccessTokenProvider>(TokenProviders.AccessTokenProvider.LoginProvider)
         .AddDefaultTokenProviders();
 
-        services.Configure<AuthOptions>(configuration.GetSection(AuthOptions.SectionName));
+        services
+            .AddOptions<AuthOptions>()
+            .BindConfiguration(AuthOptions.SectionName)
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
+
         var authOptions = configuration.GetSection(AuthOptions.SectionName).Get<AuthOptions>()!;
-        var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(authOptions.JwtSecretKey));
+        var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(authOptions.JwtOptions.SecretKey));
 
         services.AddAuthentication(e =>
         {
@@ -65,10 +71,10 @@ public static class Registrator
                 ValidateAudience = true,
                 ValidateLifetime = true,
                 ValidateIssuerSigningKey = true,
-                ValidIssuer = authOptions.JwtIssuer,
-                ValidAudience = authOptions.JwtAudience,
+                ValidIssuer = authOptions.JwtOptions.Issuer,
+                ValidAudience = authOptions.JwtOptions.Audience,
                 IssuerSigningKey = signingKey,
-                ClockSkew = TimeSpan.FromMinutes(authOptions.JwtSkewMinutesCount),
+                ClockSkew = TimeSpan.FromMinutes(authOptions.JwtOptions.SkewMinutesCount),
             };
         });
 

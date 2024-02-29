@@ -91,6 +91,8 @@ public class RecipeService : BaseApplicationService, IRecipeService
             .Recipes
             .FromSqlRaw(sql)
             .AsNoTracking()
+            .Include(e => e.Ingredients)
+            .ThenInclude(e => e.Product)
             .OrderBy(e => e.Title)
             .ApplyPaging(pagingOptions)
             .Select(e => e.ToDTO())

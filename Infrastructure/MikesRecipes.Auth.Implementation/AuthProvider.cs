@@ -22,6 +22,7 @@ public class AuthProvider : BaseService, IAuthProvider
     private readonly AuthOptions _authOptions;
     private readonly MikesRecipesDbContext _dbContext;
     private readonly IUserConfirmation<User> _confirmation;
+    private readonly IEmailConfirmationsSender _emailConfirmationsSender;
 
     public AuthProvider(
         IClock clock,
@@ -30,12 +31,14 @@ public class AuthProvider : BaseService, IAuthProvider
         IServiceScopeFactory serviceScopeFactory,
         UserManager<User> userManager,
         IOptions<AuthOptions> authOptions,
-        IUserConfirmation<User> confirmation) : base(clock, logger, serviceScopeFactory)
+        IUserConfirmation<User> confirmation,
+        IEmailConfirmationsSender emailConfirmationsSender) : base(clock, logger, serviceScopeFactory)
     {
         _userManager = userManager;
         _authOptions = authOptions.Value;
         _dbContext = dbContext;
         _confirmation = confirmation;
+        _emailConfirmationsSender = emailConfirmationsSender;
     }
 
     public async Task<Response> RegisterAsync(UserRegisterDTO userRegisterDTO, CancellationToken cancellationToken = default)
@@ -65,6 +68,13 @@ public class AuthProvider : BaseService, IAuthProvider
 
             var addedUser = await _userManager.FindByEmailAsync(user.Email);
             await _userManager.AddToRoleAsync(user, DefaultRoles.User);
+
+            var sendEmailConfirmationLinkResponse = await _emailConfirmationsSender.SendEmailConfirmationLinkAsync(user, cancellationToken);
+            if (sendEmailConfirmationLinkResponse.IsFailure)
+            {
+                return sendEmailConfirmationLinkResponse;
+            }
+
             transaction.Commit();
         }
         catch (Exception ex)
@@ -73,7 +83,7 @@ public class AuthProvider : BaseService, IAuthProvider
             _logger.LogError(ex, "Something went wrong during user registration.");
             return Response.Failure(Errors.RegistrationFailed);
         }
-        
+
         return Response.Success();
     }
 
@@ -133,7 +143,7 @@ public class AuthProvider : BaseService, IAuthProvider
         return new TokensDTO(accessToken, refreshToken);
     }
 
-    public async Task<Response<string>> RefreshTokenAsync(TokensDTO tokensDTO, CancellationToken cancellationToken = default)
+    public async Task<Response<string>> RefreshAccessTokenAsync(TokensDTO tokensDTO, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
         var validationResult = Validate(tokensDTO);
@@ -165,6 +175,29 @@ public class AuthProvider : BaseService, IAuthProvider
 
         string newAccessToken = await _userManager.GenerateUserTokenAsync(user, TokenProviders.AccessTokenProvider.LoginProvider, TokenProviders.AccessTokenProvider.Name);
         return newAccessToken;
+    }
+
+    public async Task<Response> ConfirmEmailAsync(EmailConfirmationDTO confirmEmailDTO, CancellationToken cancellationToken = default)
+    {
+        var validationResult = Validate(confirmEmailDTO);
+        if (validationResult.IsFailure)
+        {
+            return validationResult;
+        }
+
+        var user = await _userManager.FindByIdAsync(confirmEmailDTO.UserId.ToString());
+        if (user is null)
+        {
+            return Response.Failure(Errors.UserNotFound);
+        }
+
+        if (await _userManager.IsEmailConfirmedAsync(user))
+        {
+            return Response.Failure(Errors.EmailIsAlreadyConfirmed);
+        }
+
+        var result = await _userManager.ConfirmEmailAsync(user, confirmEmailDTO.DecodedToken);
+        return result.Succeeded ? Response.Success() : Response.Failure(result.Errors.Select(e => new Error(e.Code, e.Description)));
     }
 
     private Guid? GetUserIdFromJwtToken(string token)

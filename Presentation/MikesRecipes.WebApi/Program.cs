@@ -1,44 +1,18 @@
-using Asp.Versioning;
 using MikesRecipes.Auth.Implementation.Extensions;
 using MikesRecipes.DAL.Extensions;
 using MikesRecipes.Framework.Extensions;
 using MikesRecipes.Services.Implementation;
-using MikesRecipes.WebApi;
-using MikesRecipes.WebApi.Constants;
 using MikesRecipes.WebApi.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
-builder.Services.AddControllers();
-builder.Services.Configure<RouteOptions>(options => options.LowercaseUrls = true);
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerWithJwtAndVersioning();
-
-builder.Services.AddApplicationLayer();
+builder.Services.AddApplicationLayer(builder.Configuration);
 builder.Services.AddAuth(builder.Configuration);
 builder.Services.AddFramework();
 builder.Services.AddDataAccessLayer(builder.Configuration);
-
-builder.Services.AddExceptionHandler<ExceptionsHandler>();
-builder.Services.AddProblemDetails();
-
-builder.Services.AddApiVersioning(e =>
-{
-    e.DefaultApiVersion = new ApiVersion(ApiVersions.V1Dot0);
-    e.AssumeDefaultVersionWhenUnspecified = true;
-    e.ReportApiVersions = true;
-    e.ApiVersionReader = new UrlSegmentApiVersionReader();
-})
-.AddMvc()
-.AddApiExplorer(e =>
-{
-    e.GroupNameFormat = "'v'VVV";
-    e.SubstituteApiVersionInUrl = true;
-});
-
-builder.Services.AddCors();
+builder.Services.AddWebApi();
 
 // App build
 var app = builder.Build();

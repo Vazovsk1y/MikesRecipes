@@ -11,4 +11,6 @@ public static class Errors
     public static Error NullOrWhiteSpaceString(string propertyName) => new(ValidationErrorCode, $"{propertyName} was equal to null or whitespace.");
 
     public static readonly Error Unauthorized = new(AccessDeniedErrorCode, "Unauthorized.");
+
+    public static readonly Error EmailNotSent = new("Email", "Email was not sent. Something went wrong.");
 }

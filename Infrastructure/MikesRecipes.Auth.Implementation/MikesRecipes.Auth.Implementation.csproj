@@ -13,6 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\Application\MikesRecipes.Services\MikesRecipes.Services.csproj" />
     <ProjectReference Include="..\MikesRecipes.Auth\MikesRecipes.Auth.csproj" />
     <ProjectReference Include="..\MikesRecipes.DAL\MikesRecipes.DAL.csproj" />
     <ProjectReference Include="..\MikesRecipes.Framework\MikesRecipes.Framework.csproj" />
