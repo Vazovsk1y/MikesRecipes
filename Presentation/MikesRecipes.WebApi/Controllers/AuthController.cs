@@ -1,4 +1,5 @@
 ﻿using Asp.Versioning;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.WebUtilities;
 using MikesRecipes.Auth;
@@ -42,9 +43,25 @@ public class AuthController(IAuthProvider authProvider) : BaseController
     [HttpGet("confirm-email")]
     public async Task<IActionResult> ConfirmEmail(Guid userId, string token, CancellationToken cancellationToken)
     {
-        string decodedToken = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(token));
-        var dto = new EmailConfirmationDTO(userId, decodedToken);
+        try
+        {
+            token = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(token));
+        }
+        catch (FormatException)
+        {
+            return BadRequest();
+        }
+
+        var dto = new EmailConfirmationDTO(userId, token);
         var result = await _authProvider.ConfirmEmailAsync(dto, cancellationToken);
+        return result.IsSuccess ? Ok() : BadRequest(result.Errors);
+    }
+
+    [Authorize]
+    [HttpDelete("revoke")]
+    public async Task<IActionResult> RevokeRefreshToken(CancellationToken cancellationToken)
+    {
+        var result = await _authProvider.RevokeRefreshTokenAsync(cancellationToken);
         return result.IsSuccess ? Ok() : BadRequest(result.Errors);
     }
 }

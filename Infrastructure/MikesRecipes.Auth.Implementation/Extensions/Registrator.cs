@@ -31,6 +31,8 @@ public static class Registrator
 
             e.User.RequireUniqueEmail = true;
 
+            e.SignIn.RequireConfirmedEmail = true;
+
             e.Password.RequiredLength = 8;
             e.Password.RequireDigit = false;
             e.Password.RequireNonAlphanumeric = false;

@@ -72,15 +72,15 @@ public class AccessTokenProvider : IUserTwoFactorTokenProvider<User>
         using var scope = _serviceScopeFactory.CreateScope();
         var clock = scope.ServiceProvider.GetRequiredService<IClock>();
 
-        var expiryDate = clock.GetDateTimeUtcNow().AddMinutes(_authOptions.JwtTokenLifetimeMinutesCount);
+        var expiryDate = clock.GetDateTimeUtcNow().AddMinutes(_authOptions.JwtOptions.TokenLifetimeMinutesCount);
         var signingCredentials = new SigningCredentials(
-            new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_authOptions.JwtSecretKey)),
+            new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_authOptions.JwtOptions.SecretKey)),
             SecurityAlgorithms.HmacSha256
             );
 
         var token = new JwtSecurityToken(
-            _authOptions.JwtIssuer,
-            _authOptions.JwtAudience,
+            _authOptions.JwtOptions.Issuer,
+            _authOptions.JwtOptions.Audience,
             claims,
             null,
             expiryDate,
@@ -94,7 +94,7 @@ public class AccessTokenProvider : IUserTwoFactorTokenProvider<User>
 
     private ClaimsPrincipal? GetClaimsPrincipalFromJwtToken(string token)
     {
-        var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_authOptions.JwtSecretKey));
+        var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_authOptions.JwtOptions.SecretKey));
 
         var tokenValidationParametrs = new TokenValidationParameters
         {
@@ -102,8 +102,8 @@ public class AccessTokenProvider : IUserTwoFactorTokenProvider<User>
             ValidateAudience = true,
             ValidateIssuerSigningKey = true,
             ValidateLifetime = false,
-            ValidIssuer = _authOptions.JwtIssuer,
-            ValidAudience = _authOptions.JwtAudience,
+            ValidIssuer = _authOptions.JwtOptions.Issuer,
+            ValidAudience = _authOptions.JwtOptions.Audience,
             IssuerSigningKey = signingKey,
         };
 

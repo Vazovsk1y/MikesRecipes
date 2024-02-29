@@ -23,6 +23,7 @@ public class AuthProvider : BaseService, IAuthProvider
     private readonly MikesRecipesDbContext _dbContext;
     private readonly IUserConfirmation<User> _confirmation;
     private readonly IEmailConfirmationsSender _emailConfirmationsSender;
+    private readonly ICurrentUserProvider _currentUserProvider;
 
     public AuthProvider(
         IClock clock,
@@ -32,13 +33,45 @@ public class AuthProvider : BaseService, IAuthProvider
         UserManager<User> userManager,
         IOptions<AuthOptions> authOptions,
         IUserConfirmation<User> confirmation,
-        IEmailConfirmationsSender emailConfirmationsSender) : base(clock, logger, serviceScopeFactory)
+        IEmailConfirmationsSender emailConfirmationsSender,
+        ICurrentUserProvider currentUserProvider) : base(clock, logger, serviceScopeFactory)
     {
         _userManager = userManager;
         _authOptions = authOptions.Value;
         _dbContext = dbContext;
         _confirmation = confirmation;
         _emailConfirmationsSender = emailConfirmationsSender;
+        _currentUserProvider = currentUserProvider;
+    }
+
+    public async Task<Response> RevokeRefreshTokenAsync(CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var currentUser = _currentUserProvider.Get();
+        User? user = _currentUserProvider.IsAuthenticated && currentUser is not null ?
+            await _userManager.FindByIdAsync(currentUser.Id.ToString())
+            :
+            null;
+
+        if (user is null)
+        {
+            return Response.Failure(Errors.UserNotFound);
+        }
+
+        var refreshToken = await _dbContext
+            .UserTokens
+            .SingleOrDefaultAsync(e => e.UserId == user.Id
+            && e.LoginProvider == TokenProviders.RefreshTokenProvider.LoginProvider
+            && e.Name == TokenProviders.RefreshTokenProvider.Name, cancellationToken);
+
+        if (refreshToken is not null)
+        {
+            _dbContext.UserTokens.Remove(refreshToken);
+            await _dbContext.SaveChangesAsync(cancellationToken);
+        }
+       
+        return Response.Success();
     }
 
     public async Task<Response> RegisterAsync(UserRegisterDTO userRegisterDTO, CancellationToken cancellationToken = default)

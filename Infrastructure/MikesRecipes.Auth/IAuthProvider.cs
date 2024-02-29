@@ -12,4 +12,6 @@ public interface IAuthProvider
 	Task<Response<string>> RefreshAccessTokenAsync(TokensDTO tokensDTO, CancellationToken cancellationToken = default);
 
 	Task<Response> ConfirmEmailAsync(EmailConfirmationDTO emailConfirmationDTO, CancellationToken cancellationToken = default);
+
+	Task<Response> RevokeRefreshTokenAsync(CancellationToken cancellationToken = default);
 }
