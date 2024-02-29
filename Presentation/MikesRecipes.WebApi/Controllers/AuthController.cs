@@ -7,6 +7,7 @@ using MikesRecipes.Auth.Contracts;
 using MikesRecipes.WebApi.Constants;
 using MikesRecipes.WebApi.Extensions;
 using MikesRecipes.WebApi.ViewModels;
+using System.ComponentModel.DataAnnotations;
 using System.Text;
 
 namespace MikesRecipes.WebApi.Controllers;
@@ -62,6 +63,13 @@ public class AuthController(IAuthProvider authProvider) : BaseController
     public async Task<IActionResult> RevokeRefreshToken(CancellationToken cancellationToken)
     {
         var result = await _authProvider.RevokeRefreshTokenAsync(cancellationToken);
+        return result.IsSuccess ? Ok() : BadRequest(result.Errors);
+    }
+
+    [HttpPost("resend-email-confirmation")]
+    public async Task<IActionResult> ResendEmailConfirmation([Required][EmailAddress]string email, CancellationToken cancellationToken)
+    {
+        var result = await _authProvider.ResendEmailConfirmationAsync(email, cancellationToken);
         return result.IsSuccess ? Ok() : BadRequest(result.Errors);
     }
 }

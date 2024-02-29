@@ -11,6 +11,7 @@ using MikesRecipes.Domain.Models;
 using MikesRecipes.Domain.Shared;
 using MikesRecipes.Framework;
 using MikesRecipes.Framework.Interfaces;
+using System.ComponentModel.DataAnnotations;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 
@@ -24,6 +25,7 @@ public class AuthProvider : BaseService, IAuthProvider
     private readonly IUserConfirmation<User> _confirmation;
     private readonly IEmailConfirmationsSender _emailConfirmationsSender;
     private readonly ICurrentUserProvider _currentUserProvider;
+    private static readonly EmailAddressAttribute EmailAddressAttribute = new();
 
     public AuthProvider(
         IClock clock,
@@ -42,6 +44,29 @@ public class AuthProvider : BaseService, IAuthProvider
         _confirmation = confirmation;
         _emailConfirmationsSender = emailConfirmationsSender;
         _currentUserProvider = currentUserProvider;
+    }
+
+    public async Task<Response> ResendEmailConfirmationAsync(string email, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        if (!EmailAddressAttribute.IsValid(email) || await _userManager.FindByEmailAsync(email) is not { } user)
+        {
+            return Response.Failure(Errors.InvalidEmailOrPassword);
+        }
+
+        if (await _userManager.IsEmailConfirmedAsync(user))
+        {
+            return Response.Failure(Errors.EmailIsAlreadyConfirmed);
+        }
+
+        if (!_userManager.Options.SignIn.RequireConfirmedEmail)
+        {
+            return Response.Success();
+        }
+
+        var sendingEmailConfirmationLinkResponse = await _emailConfirmationsSender.SendEmailConfirmationLinkAsync(user, cancellationToken);
+        return sendingEmailConfirmationLinkResponse.IsSuccess ? Response.Success() : sendingEmailConfirmationLinkResponse;
     }
 
     public async Task<Response> RevokeRefreshTokenAsync(CancellationToken cancellationToken = default)
@@ -102,10 +127,13 @@ public class AuthProvider : BaseService, IAuthProvider
             var addedUser = await _userManager.FindByEmailAsync(user.Email);
             await _userManager.AddToRoleAsync(user, DefaultRoles.User);
 
-            var sendEmailConfirmationLinkResponse = await _emailConfirmationsSender.SendEmailConfirmationLinkAsync(user, cancellationToken);
-            if (sendEmailConfirmationLinkResponse.IsFailure)
+            if (_userManager.Options.SignIn.RequireConfirmedEmail)
             {
-                return sendEmailConfirmationLinkResponse;
+                var sendEmailConfirmationLinkResponse = await _emailConfirmationsSender.SendEmailConfirmationLinkAsync(user, cancellationToken);
+                if (sendEmailConfirmationLinkResponse.IsFailure)
+                {
+                    return sendEmailConfirmationLinkResponse;
+                }
             }
 
             transaction.Commit();
@@ -179,6 +207,7 @@ public class AuthProvider : BaseService, IAuthProvider
     public async Task<Response<string>> RefreshAccessTokenAsync(TokensDTO tokensDTO, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
+
         var validationResult = Validate(tokensDTO);
         if (validationResult.IsFailure)
         {
