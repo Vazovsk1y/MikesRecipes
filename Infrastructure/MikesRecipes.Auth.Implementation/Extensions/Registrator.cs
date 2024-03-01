@@ -21,6 +21,7 @@ public static class Registrator
     {
         services.AddScoped<IAuthProvider, AuthProvider>();
         services.AddScoped<IEmailConfirmationsSender, EmailConfirmationsSender>();
+        services.AddScoped<IUserProfileService, UserProfileService>();
         services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
 
         services.AddIdentityCore<User>(e =>

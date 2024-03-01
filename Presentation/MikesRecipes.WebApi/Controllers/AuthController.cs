@@ -37,12 +37,12 @@ public class AuthController(IAuthProvider authProvider) : BaseController
     public async Task<IActionResult> RefreshAccessToken(RefreshModel refreshModel, CancellationToken cancellationToken)
     {
         var dto = refreshModel.ToDTO();
-        var result = await _authProvider.RefreshAccessTokenAsync(dto, cancellationToken);
+        var result = await _authProvider.RefreshTokensAsync(dto, cancellationToken);
         return result.IsSuccess ? Ok(result.Value) : BadRequest(result.Errors);
     }
 
     [HttpGet("confirm-email")]
-    public async Task<IActionResult> ConfirmEmail(Guid userId, string token, CancellationToken cancellationToken)
+    public async Task<IActionResult> ConfirmEmail(Guid userId, string token, [EmailAddress]string? newEmail, CancellationToken cancellationToken)
     {
         try
         {
@@ -53,8 +53,11 @@ public class AuthController(IAuthProvider authProvider) : BaseController
             return BadRequest();
         }
 
-        var dto = new EmailConfirmationDTO(userId, token);
-        var result = await _authProvider.ConfirmEmailAsync(dto, cancellationToken);
+        var result = string.IsNullOrWhiteSpace(newEmail) ?
+            await _authProvider.ConfirmEmailAsync(new EmailConfirmationDTO(userId, token), cancellationToken)
+            :
+            await _authProvider.ConfirmEmailChangeAsync(new EmailChangeConfirmationDTO(userId, token, newEmail), cancellationToken);
+
         return result.IsSuccess ? Ok() : BadRequest(result.Errors);
     }
 

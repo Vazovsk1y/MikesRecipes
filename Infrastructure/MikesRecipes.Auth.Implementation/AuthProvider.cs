@@ -26,6 +26,7 @@ public class AuthProvider : BaseService, IAuthProvider
     private readonly IEmailConfirmationsSender _emailConfirmationsSender;
     private readonly ICurrentUserProvider _currentUserProvider;
     private static readonly EmailAddressAttribute EmailAddressAttribute = new();
+    private readonly SignInOptions _signInOptions;
 
     public AuthProvider(
         IClock clock,
@@ -44,11 +45,18 @@ public class AuthProvider : BaseService, IAuthProvider
         _confirmation = confirmation;
         _emailConfirmationsSender = emailConfirmationsSender;
         _currentUserProvider = currentUserProvider;
+
+        _signInOptions = _userManager.Options.SignIn;
     }
 
     public async Task<Response> ResendEmailConfirmationAsync(string email, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
+
+        if (!_userManager.Options.SignIn.RequireConfirmedEmail)
+        {
+            return Response.Success();
+        }
 
         if (!EmailAddressAttribute.IsValid(email) || await _userManager.FindByEmailAsync(email) is not { } user)
         {
@@ -58,11 +66,6 @@ public class AuthProvider : BaseService, IAuthProvider
         if (await _userManager.IsEmailConfirmedAsync(user))
         {
             return Response.Failure(Errors.EmailIsAlreadyConfirmed);
-        }
-
-        if (!_userManager.Options.SignIn.RequireConfirmedEmail)
-        {
-            return Response.Success();
         }
 
         var sendingEmailConfirmationLinkResponse = await _emailConfirmationsSender.SendEmailConfirmationLinkAsync(user, cancellationToken);
@@ -81,7 +84,7 @@ public class AuthProvider : BaseService, IAuthProvider
 
         if (user is null)
         {
-            return Response.Failure(Errors.UserNotFound);
+            return Response.Failure(Errors.Unauthorized);
         }
 
         var refreshToken = await _dbContext
@@ -95,7 +98,7 @@ public class AuthProvider : BaseService, IAuthProvider
             _dbContext.UserTokens.Remove(refreshToken);
             await _dbContext.SaveChangesAsync(cancellationToken);
         }
-       
+
         return Response.Success();
     }
 
@@ -118,16 +121,15 @@ public class AuthProvider : BaseService, IAuthProvider
         using var transaction = _dbContext.Database.BeginTransaction();
         try
         {
-            var creationResult = await _userManager.CreateAsync(user, userRegisterDTO.Password);
-            if (!creationResult.Succeeded)
+            var userCreationResult = await _userManager.CreateAsync(user, userRegisterDTO.Password);
+            if (!userCreationResult.Succeeded)
             {
-                return Response.Failure(creationResult.Errors.Select(e => new Error(e.Code, e.Description)));
+                return Response.Failure(userCreationResult.Errors.Select(e => new Error(e.Code, e.Description)));
             }
 
-            var addedUser = await _userManager.FindByEmailAsync(user.Email);
             await _userManager.AddToRoleAsync(user, DefaultRoles.User);
 
-            if (_userManager.Options.SignIn.RequireConfirmedEmail)
+            if (_signInOptions.RequireConfirmedEmail)
             {
                 var sendEmailConfirmationLinkResponse = await _emailConfirmationsSender.SendEmailConfirmationLinkAsync(user, cancellationToken);
                 if (sendEmailConfirmationLinkResponse.IsFailure)
@@ -152,102 +154,105 @@ public class AuthProvider : BaseService, IAuthProvider
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        var validationResult = Validate(userLoginDTO);
-        if (validationResult.IsFailure)
-        {
-            return Response.Failure<TokensDTO>(validationResult.Errors);
-        }
-
-        var user = await _userManager.FindByEmailAsync(userLoginDTO.Email);
-        if (user is null)
-        {
-            return Response.Failure<TokensDTO>(Errors.InvalidEmailOrPassword);
-        }
-
-        var canLoginResult = await CanLogin(user, userLoginDTO.Password);
+        var canLoginResult = await CanLogin(userLoginDTO);
         if (canLoginResult.IsFailure)
         {
             return Response.Failure<TokensDTO>(canLoginResult.Errors);
         }
 
+        User user = canLoginResult.Value;
         string accessToken = await _userManager.GenerateUserTokenAsync(user, TokenProviders.AccessTokenProvider.LoginProvider, TokenProviders.AccessTokenProvider.Name);
-        string refreshToken = await _userManager.GenerateUserTokenAsync(user, TokenProviders.RefreshTokenProvider.LoginProvider, TokenProviders.RefreshTokenProvider.Name);
+        string refreshTokenValue = await _userManager.GenerateUserTokenAsync(user, TokenProviders.RefreshTokenProvider.LoginProvider, TokenProviders.RefreshTokenProvider.Name);
 
-        var existingRefreshToken = await _dbContext
+        var refreshToken = await _dbContext
             .UserTokens
             .SingleOrDefaultAsync(e => e.UserId == user.Id
             && e.LoginProvider == TokenProviders.RefreshTokenProvider.LoginProvider
             && e.Name == TokenProviders.RefreshTokenProvider.Name, cancellationToken);
 
         var currentDate = _clock.GetDateTimeOffsetUtcNow();
-        if (existingRefreshToken is not null)
+
+        if (refreshToken is null)
         {
-            existingRefreshToken.ExpiryDate = currentDate.AddDays(_authOptions.RefreshTokenLifetimeDaysCount);
-            existingRefreshToken.Value = refreshToken;
-        }
-        else
-        {
-            var token = new UserToken
+            refreshToken = new UserToken
             {
                 ExpiryDate = currentDate.AddDays(_authOptions.RefreshTokenLifetimeDaysCount),
-                Value = refreshToken,
+                Value = refreshTokenValue,
                 UserId = user.Id,
                 LoginProvider = TokenProviders.RefreshTokenProvider.LoginProvider,
                 Name = TokenProviders.RefreshTokenProvider.Name
             };
 
-            _dbContext.UserTokens.Add(token);
+            _dbContext.UserTokens.Add(refreshToken);
+        }
+        else
+        {
+            refreshToken.ExpiryDate = currentDate.AddDays(_authOptions.RefreshTokenLifetimeDaysCount);
+            refreshToken.Value = refreshTokenValue;
         }
 
         await _userManager.ResetAccessFailedCountAsync(user);
         await _dbContext.SaveChangesAsync(cancellationToken);
-        return new TokensDTO(accessToken, refreshToken);
+        return new TokensDTO(accessToken, refreshTokenValue);
     }
 
-    public async Task<Response<string>> RefreshAccessTokenAsync(TokensDTO tokensDTO, CancellationToken cancellationToken = default)
+    public async Task<Response<TokensDTO>> RefreshTokensAsync(TokensDTO tokensDTO, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
         var validationResult = Validate(tokensDTO);
         if (validationResult.IsFailure)
         {
-            return Response.Failure<string>(validationResult.Errors);
+            return Response.Failure<TokensDTO>(validationResult.Errors);
         }
 
         var userId = GetUserIdFromJwtToken(tokensDTO.AccessToken);
-        var user = userId is null ? null : await _userManager.FindByIdAsync(userId.ToString()!);
-        bool accessTokenVerificationResult = user is not null 
+        var user = userId is not null ? await _userManager.FindByIdAsync(userId.ToString()!) : null;
+        bool accessTokenVerificationResult = user is not null
             && await _userManager.VerifyUserTokenAsync(user, TokenProviders.AccessTokenProvider.LoginProvider, TokenProviders.AccessTokenProvider.Name, tokensDTO.AccessToken);
 
-        if (userId is null || user is null || !accessTokenVerificationResult)
+        if (user is null || !accessTokenVerificationResult)
         {
-            return Response.Failure<string>(Errors.InvalidAccessToken);
+            return Response.Failure<TokensDTO>(Errors.InvalidAccessToken);
         }
 
         bool refreshTokenVerificationResult = await _userManager.VerifyUserTokenAsync(
             user, 
-            TokenProviders.RefreshTokenProvider.LoginProvider, 
-            TokenProviders.RefreshTokenProvider.Name, 
+            TokenProviders.RefreshTokenProvider.LoginProvider,
+            TokenProviders.RefreshTokenProvider.Name,
             tokensDTO.RefreshToken);
 
         if (!refreshTokenVerificationResult)
         {
-            return Response.Failure<string>(Errors.InvalidRefreshToken);
+            return Response.Failure<TokensDTO>(Errors.InvalidRefreshToken);
         }
 
+        var existingRefreshToken = await _dbContext
+           .UserTokens
+           .SingleAsync(e => e.UserId == user.Id
+           && e.LoginProvider == TokenProviders.RefreshTokenProvider.LoginProvider
+           && e.Name == TokenProviders.RefreshTokenProvider.Name, cancellationToken);
+
+        string newRefreshTokenValue = await _userManager.GenerateUserTokenAsync(user, TokenProviders.RefreshTokenProvider.LoginProvider, TokenProviders.RefreshTokenProvider.Name);
         string newAccessToken = await _userManager.GenerateUserTokenAsync(user, TokenProviders.AccessTokenProvider.LoginProvider, TokenProviders.AccessTokenProvider.Name);
-        return newAccessToken;
+
+        var currentDate = _clock.GetDateTimeOffsetUtcNow();
+        existingRefreshToken.ExpiryDate = currentDate.AddDays(_authOptions.RefreshTokenLifetimeDaysCount);
+        existingRefreshToken.Value = newRefreshTokenValue;
+
+        await _dbContext.SaveChangesAsync(cancellationToken);
+        return new TokensDTO(newAccessToken, newRefreshTokenValue);
     }
 
-    public async Task<Response> ConfirmEmailAsync(EmailConfirmationDTO confirmEmailDTO, CancellationToken cancellationToken = default)
+    public async Task<Response> ConfirmEmailAsync(EmailConfirmationDTO emailConfirmationDTO, CancellationToken cancellationToken = default)
     {
-        var validationResult = Validate(confirmEmailDTO);
+        var validationResult = Validate(emailConfirmationDTO);
         if (validationResult.IsFailure)
         {
             return validationResult;
         }
 
-        var user = await _userManager.FindByIdAsync(confirmEmailDTO.UserId.ToString());
+        var user = await _userManager.FindByIdAsync(emailConfirmationDTO.UserId.ToString());
         if (user is null)
         {
             return Response.Failure(Errors.UserNotFound);
@@ -258,7 +263,31 @@ public class AuthProvider : BaseService, IAuthProvider
             return Response.Failure(Errors.EmailIsAlreadyConfirmed);
         }
 
-        var result = await _userManager.ConfirmEmailAsync(user, confirmEmailDTO.DecodedToken);
+        var result = await _userManager.ConfirmEmailAsync(user, emailConfirmationDTO.DecodedToken);
+        return result.Succeeded ? Response.Success() : Response.Failure(result.Errors.Select(e => new Error(e.Code, e.Description)));
+    }
+
+    public async Task<Response> ConfirmEmailChangeAsync(EmailChangeConfirmationDTO emailChangeConfirmationDTO, CancellationToken cancellationToken = default)
+    {
+        var validationResult = Validate(emailChangeConfirmationDTO);
+        if (validationResult.IsFailure)
+        {
+            return validationResult;
+        }
+
+        var user = await _userManager.FindByIdAsync(emailChangeConfirmationDTO.UserId.ToString());
+        if (user is null)
+        {
+            return Response.Failure(Errors.UserNotFound);
+        }
+
+        string newEmail = emailChangeConfirmationDTO.NewEmail.Trim();
+        if (user.Email == newEmail && await _userManager.IsEmailConfirmedAsync(user))
+        {
+            return Response.Failure(Errors.EmailIsAlreadyConfirmed);
+        }
+
+        var result = await _userManager.ChangeEmailAsync(user, newEmail, emailChangeConfirmationDTO.DecodedToken);
         return result.Succeeded ? Response.Success() : Response.Failure(result.Errors.Select(e => new Error(e.Code, e.Description)));
     }
 
@@ -271,41 +300,53 @@ public class AuthProvider : BaseService, IAuthProvider
             string userIdString = securityToken.Subject ?? securityToken.Claims.Single(e => e.Type == ClaimTypes.NameIdentifier).Value;
             return Guid.Parse(userIdString);
         }
-        catch(Exception ex)
+        catch (Exception ex)
         {
             _logger.LogError(ex, "Something went wrong while getting user id from jwt token.");
             return null;
         }
     }
 
-    private async Task<Response> CanLogin(User user, string password)
+    private async Task<Response<User>> CanLogin(UserLoginDTO userLoginDTO)
     {
-        if (_userManager.Options.SignIn.RequireConfirmedEmail && !(await _userManager.IsEmailConfirmedAsync(user)))
+        var validationResult = Validate(userLoginDTO);
+        if (validationResult.IsFailure)
         {
-            return Response.Failure(Errors.ConfirmationRequiredFor(nameof(User.Email)));
+            return Response.Failure<User>(validationResult.Errors);
         }
 
-        if (_userManager.Options.SignIn.RequireConfirmedPhoneNumber && !(await _userManager.IsPhoneNumberConfirmedAsync(user)))
+        var user = await _userManager.FindByEmailAsync(userLoginDTO.Email);
+        if (user is null)
         {
-            return Response.Failure(Errors.ConfirmationRequiredFor(nameof(User.PhoneNumber)));
+            return Response.Failure<User>(Errors.InvalidEmailOrPassword);
         }
 
-        if (_userManager.Options.SignIn.RequireConfirmedAccount && !(await _confirmation.IsConfirmedAsync(_userManager, user)))
+        if (_signInOptions.RequireConfirmedEmail && !(await _userManager.IsEmailConfirmedAsync(user)))
         {
-            return Response.Failure(Errors.ConfirmationRequiredFor("Account"));
+            return Response.Failure<User>(Errors.ConfirmationRequiredFor(nameof(User.Email)));
+        }
+
+        if (_signInOptions.RequireConfirmedPhoneNumber && !(await _userManager.IsPhoneNumberConfirmedAsync(user)))
+        {
+            return Response.Failure<User>(Errors.ConfirmationRequiredFor(nameof(User.PhoneNumber)));
+        }
+
+        if (_signInOptions.RequireConfirmedAccount && !(await _confirmation.IsConfirmedAsync(_userManager, user)))
+        {
+            return Response.Failure<User>(Errors.ConfirmationRequiredFor("Account"));
         }
 
         if (await _userManager.IsLockedOutAsync(user))
         {
-            return Response.Failure<TokensDTO>(Errors.UserLockedOut);
+            return Response.Failure<User>(Errors.UserLockedOut);
         }
 
-        if (!await _userManager.CheckPasswordAsync(user, password))
+        if (!await _userManager.CheckPasswordAsync(user, userLoginDTO.Password))
         {
             await _userManager.AccessFailedAsync(user);
-            return Response.Failure<TokensDTO>(Errors.InvalidEmailOrPassword);
+            return Response.Failure<User>(Errors.InvalidEmailOrPassword);
         }
 
-        return Response.Success();
+        return user;
     }
 }

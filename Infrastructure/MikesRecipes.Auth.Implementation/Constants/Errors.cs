@@ -21,5 +21,7 @@ public static class Errors
     public static readonly Error UserNotFound = new($"{CodeBase}.{nameof(UserNotFound)}", "User not found.");
 
     public static readonly Error EmailIsAlreadyConfirmed = new($"{CodeBase}.{nameof(EmailIsAlreadyConfirmed)}", "Email is already confirmed.");
+
+    public static readonly Error Unauthorized = new($"{CodeBase}.{nameof(Unauthorized)}", "Unauthorized.");
     public static Error ConfirmationRequiredFor(string confirmationFor) => new($"{CodeBase}.ConfirmationRequired", $"{confirmationFor} is not confirmed.");
 }
