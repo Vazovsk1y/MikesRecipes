@@ -10,8 +10,8 @@ using MikesRecipes.Auth.Implementation.Constants;
 using MikesRecipes.Domain.Models;
 using MikesRecipes.Domain.Shared;
 using MikesRecipes.Framework;
+using MikesRecipes.Framework.Contracts;
 using MikesRecipes.Framework.Interfaces;
-using MikesRecipes.Services.Contracts;
 using System.ComponentModel.DataAnnotations;
 using System.Text;
 using System.Text.Encodings.Web;
@@ -23,7 +23,7 @@ public class EmailConfirmationsSender : BaseService, IEmailConfirmationsSender
     private readonly UserManager<User> _userManager;
     private readonly HttpContext _httpContext;
     private readonly IUrlHelper _urlHelper;
-    private readonly Services.IEmailSender _emailSender;
+    private readonly IEmailSender _emailSender;
     private static readonly EmailAddressAttribute EmailAddressAttribute = new();
     public EmailConfirmationsSender(
         IClock clock,
@@ -33,7 +33,7 @@ public class EmailConfirmationsSender : BaseService, IEmailConfirmationsSender
         IHttpContextAccessor httpContextAccessor,
         IUrlHelperFactory urlHelperFactory,
         IActionContextAccessor actionContextAccessor,
-        Services.IEmailSender emailSender) : base(clock, logger, serviceScopeFactory)
+        IEmailSender emailSender) : base(clock, logger, serviceScopeFactory)
     {
         _userManager = userManager;
 

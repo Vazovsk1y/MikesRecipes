@@ -2,12 +2,11 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using MikesRecipes.Domain.Shared;
-using MikesRecipes.Framework;
+using MikesRecipes.Framework.Constants;
+using MikesRecipes.Framework.Contracts;
 using MikesRecipes.Framework.Interfaces;
-using MikesRecipes.Services.Contracts;
-using MikesRecipes.Services.Implementation.Constants;
 
-namespace MikesRecipes.Services.Implementation;
+namespace MikesRecipes.Framework;
 
 public class EmailSender : BaseService, IEmailSender
 {

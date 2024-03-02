@@ -7,20 +7,22 @@ namespace MikesRecipes.Framework;
 
 public class CurrentUserProvider : ICurrentUserProvider
 {
-    private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly HttpContext _httpContext;
 
     public CurrentUserProvider(IHttpContextAccessor httpContextAccessor)
     {
-        _httpContextAccessor = httpContextAccessor;
+        var httpContext = httpContextAccessor.HttpContext;
+        ArgumentNullException.ThrowIfNull(httpContext, nameof(httpContext));
+
+        _httpContext = httpContext;
     }
 
-    public bool IsAuthenticated => _httpContextAccessor.HttpContext.User.Identity?.IsAuthenticated is true;
+    public bool IsAuthenticated => _httpContext.User.Identity?.IsAuthenticated is true;
 
     public CurrentUser? Get()
     {
-        var context = _httpContextAccessor.HttpContext;
         return IsAuthenticated ?
-            new CurrentUser(Guid.Parse(context.User.Claims.Single(e => e.Type == ClaimTypes.NameIdentifier).Value), context.User.Claims)
+            new CurrentUser(Guid.Parse(_httpContext.User.Claims.Single(e => e.Type == ClaimTypes.NameIdentifier).Value), _httpContext.User.Claims)
             :
             null;
     }

@@ -1,7 +1,7 @@
 ﻿using FluentValidation;
-using MikesRecipes.Services.Contracts;
+using MikesRecipes.Framework.Contracts;
 
-namespace MikesRecipes.Services.Implementation.Validators;
+namespace MikesRecipes.Framework.Validators;
 
 public class EmailDTOValidator : AbstractValidator<EmailDTO>
 {

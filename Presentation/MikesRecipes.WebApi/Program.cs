@@ -10,7 +10,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddApplicationLayer(builder.Configuration);
 builder.Services.AddAuth(builder.Configuration);
-builder.Services.AddFramework();
+builder.Services.AddFramework(builder.Configuration);
 builder.Services.AddDataAccessLayer(builder.Configuration);
 builder.Services.AddWebApi();
 

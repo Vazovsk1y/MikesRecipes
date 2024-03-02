@@ -1,4 +1,4 @@
-﻿namespace MikesRecipes.Services.Contracts;
+﻿namespace MikesRecipes.Framework.Contracts;
 
 public record EmailDTO(string To, string Subject, string Body, bool IsHtml = true)
 {

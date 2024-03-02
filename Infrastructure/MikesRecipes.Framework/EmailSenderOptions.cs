@@ -1,11 +1,11 @@
 ﻿using Microsoft.Extensions.Options;
 using System.ComponentModel.DataAnnotations;
 
-namespace MikesRecipes.Services.Implementation;
+namespace MikesRecipes.Framework;
 
 public class EmailSenderOptions
 {
-    public const string SectionName = "Mailing";
+    public const string SectionName = "EmailSender";
 
     [Required]
     [EmailAddress]
@@ -15,12 +15,12 @@ public class EmailSenderOptions
 
     [Required]
     [ValidateObjectMembers]
-    public required SmtpOptions SmtpOptions { get; init; }
+    public required SmtpOptions Smtp { get; init; }
 }
 
 public class SmtpOptions
 {
-    public const string SectionName = nameof(EmailSenderOptions.SmtpOptions);
+    public const string SectionName = nameof(EmailSenderOptions.Smtp);
 
     [Required]
     public required string SmtpServer { get; init; }
