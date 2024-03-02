@@ -9,9 +9,8 @@ using Microsoft.AspNetCore.Identity;
 using System.Text;
 using System.Reflection;
 using FluentValidation;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using MikesRecipes.Auth.Implementation.Options;
 
 namespace MikesRecipes.Auth.Implementation.Extensions;
 
@@ -24,34 +23,6 @@ public static class Registrator
         services.AddScoped<IUserProfileService, UserProfileService>();
         services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
 
-        services.AddIdentityCore<User>(e =>
-        {
-            e.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(10);
-            e.Lockout.MaxFailedAccessAttempts = 10;
-            e.Lockout.AllowedForNewUsers = true;
-
-            e.User.RequireUniqueEmail = true;
-
-            e.SignIn.RequireConfirmedEmail = true;
-
-            e.Password.RequiredLength = 8;
-            e.Password.RequireDigit = false;
-            e.Password.RequireNonAlphanumeric = false;
-            e.Password.RequireUppercase = false;
-
-            e.ClaimsIdentity.SecurityStampClaimType = nameof(User.SecurityStamp);
-            e.ClaimsIdentity.UserIdClaimType = JwtRegisteredClaimNames.Sub;
-            e.ClaimsIdentity.UserNameClaimType = JwtRegisteredClaimNames.Name;
-            e.ClaimsIdentity.RoleClaimType = ClaimTypes.Role;
-            e.ClaimsIdentity.EmailClaimType = JwtRegisteredClaimNames.Email;
-        })
-        .AddRoles<Role>()
-        .AddSignInManager<SignInManager<User>>()
-        .AddEntityFrameworkStores<MikesRecipesDbContext>()
-        .AddTokenProvider<RefreshTokenProvider>(TokenProviders.RefreshTokenProvider.LoginProvider)
-        .AddTokenProvider<AccessTokenProvider>(TokenProviders.AccessTokenProvider.LoginProvider)
-        .AddDefaultTokenProviders();
-
         services
             .AddOptions<AuthOptions>()
             .BindConfiguration(AuthOptions.SectionName)
@@ -59,7 +30,23 @@ public static class Registrator
             .ValidateOnStart();
 
         var authOptions = configuration.GetSection(AuthOptions.SectionName).Get<AuthOptions>()!;
-        var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(authOptions.JwtOptions.SecretKey));
+        var identityOptions = authOptions.ToIdentityOptions();
+
+        services
+            .AddTransient(e =>
+            {
+                return Microsoft.Extensions.Options.Options.Create(identityOptions);
+            })
+            .AddIdentityCore<User>()
+            .AddRoles<Role>()
+            .AddSignInManager<SignInManager<User>>()
+            .AddEntityFrameworkStores<MikesRecipesDbContext>()
+            .AddTokenProvider<RefreshTokenProvider>(TokenProviders.RefreshTokenProvider.LoginProvider)
+            .AddTokenProvider<AccessTokenProvider>(TokenProviders.AccessTokenProvider.LoginProvider)
+            .AddClaimsPrincipalFactory<AuthUserClaimsPrincipalFactory>()
+            .AddDefaultTokenProviders();
+
+        var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(authOptions.Tokens.Jwt.SecretKey));
 
         services.AddAuthentication(e =>
         {
@@ -74,10 +61,10 @@ public static class Registrator
                 ValidateAudience = true,
                 ValidateLifetime = true,
                 ValidateIssuerSigningKey = true,
-                ValidIssuer = authOptions.JwtOptions.Issuer,
-                ValidAudience = authOptions.JwtOptions.Audience,
+                ValidIssuer = authOptions.Tokens.Jwt.Issuer,
+                ValidAudience = authOptions.Tokens.Jwt.Audience,
                 IssuerSigningKey = signingKey,
-                ClockSkew = TimeSpan.FromMinutes(authOptions.JwtOptions.SkewMinutesCount),
+                ClockSkew = authOptions.Tokens.Jwt.ClockSkew,
             };
         });
 

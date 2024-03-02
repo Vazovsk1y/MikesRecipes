@@ -5,6 +5,8 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MikesRecipes.Auth.Contracts;
 using MikesRecipes.Auth.Implementation.Constants;
+using MikesRecipes.Auth.Implementation.Extensions;
+using MikesRecipes.Auth.Implementation.Options;
 using MikesRecipes.DAL;
 using MikesRecipes.Domain.Constants;
 using MikesRecipes.Domain.Models;
@@ -12,48 +14,37 @@ using MikesRecipes.Domain.Shared;
 using MikesRecipes.Framework;
 using MikesRecipes.Framework.Interfaces;
 using System.ComponentModel.DataAnnotations;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
 
 namespace MikesRecipes.Auth.Implementation;
 
-public class AuthProvider : BaseService, IAuthProvider
+public class AuthProvider : BaseAuthService, IAuthProvider
 {
-    private readonly UserManager<User> _userManager;
-    private readonly AuthOptions _authOptions;
-    private readonly MikesRecipesDbContext _dbContext;
     private readonly IUserConfirmation<User> _confirmation;
     private readonly IEmailConfirmationsSender _emailConfirmationsSender;
-    private readonly ICurrentUserProvider _currentUserProvider;
     private static readonly EmailAddressAttribute EmailAddressAttribute = new();
-    private readonly SignInOptions _signInOptions;
+    private readonly AuthSignInOptions _signInOptions;
 
     public AuthProvider(
         IClock clock,
         ILogger<BaseService> logger,
-        MikesRecipesDbContext dbContext,
         IServiceScopeFactory serviceScopeFactory,
+        ICurrentUserProvider currentUserProvider,
         UserManager<User> userManager,
         IOptions<AuthOptions> authOptions,
+        MikesRecipesDbContext dbContext,
         IUserConfirmation<User> confirmation,
-        IEmailConfirmationsSender emailConfirmationsSender,
-        ICurrentUserProvider currentUserProvider) : base(clock, logger, serviceScopeFactory)
+        IEmailConfirmationsSender emailConfirmationsSender) : base(clock, logger, serviceScopeFactory, currentUserProvider, userManager, authOptions, dbContext)
     {
-        _userManager = userManager;
-        _authOptions = authOptions.Value;
-        _dbContext = dbContext;
         _confirmation = confirmation;
         _emailConfirmationsSender = emailConfirmationsSender;
-        _currentUserProvider = currentUserProvider;
-
-        _signInOptions = _userManager.Options.SignIn;
+        _signInOptions = _authOptions.SignIn;
     }
 
     public async Task<Response> ResendEmailConfirmationAsync(string email, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        if (!_userManager.Options.SignIn.RequireConfirmedEmail)
+        if (!_signInOptions.RequireConfirmedEmail)
         {
             return Response.Success();
         }
@@ -76,17 +67,13 @@ public class AuthProvider : BaseService, IAuthProvider
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        var currentUser = _currentUserProvider.Get();
-        User? user = _currentUserProvider.IsAuthenticated && currentUser is not null ?
-            await _userManager.FindByIdAsync(currentUser.Id.ToString())
-            :
-            null;
-
-        if (user is null)
+        var isAuthenticatedResponse = await IsAuthenticated();
+        if (isAuthenticatedResponse.IsFailure)
         {
-            return Response.Failure(Errors.Unauthorized);
+            return isAuthenticatedResponse;
         }
 
+        User user = isAuthenticatedResponse.Value;
         var refreshToken = await _dbContext
             .UserTokens
             .SingleOrDefaultAsync(e => e.UserId == user.Id
@@ -124,10 +111,14 @@ public class AuthProvider : BaseService, IAuthProvider
             var userCreationResult = await _userManager.CreateAsync(user, userRegisterDTO.Password);
             if (!userCreationResult.Succeeded)
             {
-                return Response.Failure(userCreationResult.Errors.Select(e => new Error(e.Code, e.Description)));
+                return Response.Failure(userCreationResult.Errors.ToErrors());
             }
 
-            await _userManager.AddToRoleAsync(user, DefaultRoles.User);
+            var addingToRoleResult = await _userManager.AddToRoleAsync(user, DefaultRoles.User);
+            if (!addingToRoleResult.Succeeded)
+            {
+                return Response.Failure(addingToRoleResult.Errors.ToErrors());
+            }
 
             if (_signInOptions.RequireConfirmedEmail)
             {
@@ -176,7 +167,7 @@ public class AuthProvider : BaseService, IAuthProvider
         {
             refreshToken = new UserToken
             {
-                ExpiryDate = currentDate.AddDays(_authOptions.RefreshTokenLifetimeDaysCount),
+                ExpiryDate = currentDate.Add(_authOptions.Tokens.Refresh.TokenLifetime),
                 Value = refreshTokenValue,
                 UserId = user.Id,
                 LoginProvider = TokenProviders.RefreshTokenProvider.LoginProvider,
@@ -187,7 +178,7 @@ public class AuthProvider : BaseService, IAuthProvider
         }
         else
         {
-            refreshToken.ExpiryDate = currentDate.AddDays(_authOptions.RefreshTokenLifetimeDaysCount);
+            refreshToken.ExpiryDate = currentDate.Add(_authOptions.Tokens.Refresh.TokenLifetime);
             refreshToken.Value = refreshTokenValue;
         }
 
@@ -196,31 +187,22 @@ public class AuthProvider : BaseService, IAuthProvider
         return new TokensDTO(accessToken, refreshTokenValue);
     }
 
-    public async Task<Response<TokensDTO>> RefreshTokensAsync(TokensDTO tokensDTO, CancellationToken cancellationToken = default)
+    public async Task<Response<TokensDTO>> RefreshTokensAsync(string refreshToken, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        var validationResult = Validate(tokensDTO);
-        if (validationResult.IsFailure)
+        var isAuthenticatedResponse = await IsAuthenticated();
+        if (isAuthenticatedResponse.IsFailure)
         {
-            return Response.Failure<TokensDTO>(validationResult.Errors);
+            return Response.Failure<TokensDTO>(isAuthenticatedResponse.Errors);
         }
 
-        var userId = GetUserIdFromJwtToken(tokensDTO.AccessToken);
-        var user = userId is not null ? await _userManager.FindByIdAsync(userId.ToString()!) : null;
-        bool accessTokenVerificationResult = user is not null
-            && await _userManager.VerifyUserTokenAsync(user, TokenProviders.AccessTokenProvider.LoginProvider, TokenProviders.AccessTokenProvider.Name, tokensDTO.AccessToken);
-
-        if (user is null || !accessTokenVerificationResult)
-        {
-            return Response.Failure<TokensDTO>(Errors.InvalidAccessToken);
-        }
-
+        User user = isAuthenticatedResponse.Value;
         bool refreshTokenVerificationResult = await _userManager.VerifyUserTokenAsync(
             user, 
             TokenProviders.RefreshTokenProvider.LoginProvider,
             TokenProviders.RefreshTokenProvider.Name,
-            tokensDTO.RefreshToken);
+            refreshToken);
 
         if (!refreshTokenVerificationResult)
         {
@@ -229,7 +211,8 @@ public class AuthProvider : BaseService, IAuthProvider
 
         var existingRefreshToken = await _dbContext
            .UserTokens
-           .SingleAsync(e => e.UserId == user.Id
+           .SingleAsync(e => 
+           e.UserId == user.Id
            && e.LoginProvider == TokenProviders.RefreshTokenProvider.LoginProvider
            && e.Name == TokenProviders.RefreshTokenProvider.Name, cancellationToken);
 
@@ -237,7 +220,7 @@ public class AuthProvider : BaseService, IAuthProvider
         string newAccessToken = await _userManager.GenerateUserTokenAsync(user, TokenProviders.AccessTokenProvider.LoginProvider, TokenProviders.AccessTokenProvider.Name);
 
         var currentDate = _clock.GetDateTimeOffsetUtcNow();
-        existingRefreshToken.ExpiryDate = currentDate.AddDays(_authOptions.RefreshTokenLifetimeDaysCount);
+        existingRefreshToken.ExpiryDate = currentDate.Add(_authOptions.Tokens.Refresh.TokenLifetime);
         existingRefreshToken.Value = newRefreshTokenValue;
 
         await _dbContext.SaveChangesAsync(cancellationToken);
@@ -246,6 +229,13 @@ public class AuthProvider : BaseService, IAuthProvider
 
     public async Task<Response> ConfirmEmailAsync(EmailConfirmationDTO emailConfirmationDTO, CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        if (!_signInOptions.RequireConfirmedEmail)
+        {
+            return Response.Failure(Errors.EmailConfirmationDisabled);
+        }
+
         var validationResult = Validate(emailConfirmationDTO);
         if (validationResult.IsFailure)
         {
@@ -264,11 +254,18 @@ public class AuthProvider : BaseService, IAuthProvider
         }
 
         var result = await _userManager.ConfirmEmailAsync(user, emailConfirmationDTO.DecodedToken);
-        return result.Succeeded ? Response.Success() : Response.Failure(result.Errors.Select(e => new Error(e.Code, e.Description)));
+        return result.Succeeded ? Response.Success() : Response.Failure(result.Errors.ToErrors());
     }
 
     public async Task<Response> ConfirmEmailChangeAsync(EmailChangeConfirmationDTO emailChangeConfirmationDTO, CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        if (!_signInOptions.RequireConfirmedEmail)
+        {
+            return Response.Failure(Errors.EmailConfirmationDisabled);
+        }
+
         var validationResult = Validate(emailChangeConfirmationDTO);
         if (validationResult.IsFailure)
         {
@@ -288,23 +285,7 @@ public class AuthProvider : BaseService, IAuthProvider
         }
 
         var result = await _userManager.ChangeEmailAsync(user, newEmail, emailChangeConfirmationDTO.DecodedToken);
-        return result.Succeeded ? Response.Success() : Response.Failure(result.Errors.Select(e => new Error(e.Code, e.Description)));
-    }
-
-    private Guid? GetUserIdFromJwtToken(string token)
-    {
-        try
-        {
-            var handler = new JwtSecurityTokenHandler();
-            var securityToken = handler.ReadJwtToken(token);
-            string userIdString = securityToken.Subject ?? securityToken.Claims.Single(e => e.Type == ClaimTypes.NameIdentifier).Value;
-            return Guid.Parse(userIdString);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Something went wrong while getting user id from jwt token.");
-            return null;
-        }
+        return result.Succeeded ? Response.Success() : Response.Failure(result.Errors.ToErrors());
     }
 
     private async Task<Response<User>> CanLogin(UserLoginDTO userLoginDTO)

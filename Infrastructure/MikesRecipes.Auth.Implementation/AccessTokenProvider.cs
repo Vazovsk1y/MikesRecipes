@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using MikesRecipes.Auth.Implementation.Constants;
+using MikesRecipes.Auth.Implementation.Options;
 using MikesRecipes.Domain.Models;
 using MikesRecipes.Framework.Interfaces;
 using System.IdentityModel.Tokens.Jwt;
@@ -72,15 +73,15 @@ public class AccessTokenProvider : IUserTwoFactorTokenProvider<User>
         using var scope = _serviceScopeFactory.CreateScope();
         var clock = scope.ServiceProvider.GetRequiredService<IClock>();
 
-        var expiryDate = clock.GetDateTimeUtcNow().AddMinutes(_authOptions.JwtOptions.TokenLifetimeMinutesCount);
+        var expiryDate = clock.GetDateTimeUtcNow().Add(_authOptions.Tokens.Jwt.TokenLifetime);
         var signingCredentials = new SigningCredentials(
-            new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_authOptions.JwtOptions.SecretKey)),
+            new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_authOptions.Tokens.Jwt.SecretKey)),
             SecurityAlgorithms.HmacSha256
             );
 
         var token = new JwtSecurityToken(
-            _authOptions.JwtOptions.Issuer,
-            _authOptions.JwtOptions.Audience,
+            _authOptions.Tokens.Jwt.Issuer,
+            _authOptions.Tokens.Jwt.Audience,
             claims,
             null,
             expiryDate,
@@ -94,7 +95,7 @@ public class AccessTokenProvider : IUserTwoFactorTokenProvider<User>
 
     private ClaimsPrincipal? GetClaimsPrincipalFromJwtToken(string token)
     {
-        var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_authOptions.JwtOptions.SecretKey));
+        var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_authOptions.Tokens.Jwt.SecretKey));
 
         var tokenValidationParametrs = new TokenValidationParameters
         {
@@ -102,8 +103,8 @@ public class AccessTokenProvider : IUserTwoFactorTokenProvider<User>
             ValidateAudience = true,
             ValidateIssuerSigningKey = true,
             ValidateLifetime = false,
-            ValidIssuer = _authOptions.JwtOptions.Issuer,
-            ValidAudience = _authOptions.JwtOptions.Audience,
+            ValidIssuer = _authOptions.Tokens.Jwt.Issuer,
+            ValidAudience = _authOptions.Tokens.Jwt.Audience,
             IssuerSigningKey = signingKey,
         };
 

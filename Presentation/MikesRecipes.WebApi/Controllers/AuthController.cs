@@ -33,11 +33,11 @@ public class AuthController(IAuthProvider authProvider) : BaseController
         return result.IsSuccess ? Ok(result.Value) : BadRequest(result.Errors);
     }
 
+    [Authorize]
     [HttpPost("refresh")]
-    public async Task<IActionResult> RefreshAccessToken(RefreshModel refreshModel, CancellationToken cancellationToken)
+    public async Task<IActionResult> RefreshAccessToken([Required]string refreshToken, CancellationToken cancellationToken)
     {
-        var dto = refreshModel.ToDTO();
-        var result = await _authProvider.RefreshTokensAsync(dto, cancellationToken);
+        var result = await _authProvider.RefreshTokensAsync(refreshToken, cancellationToken);
         return result.IsSuccess ? Ok(result.Value) : BadRequest(result.Errors);
     }
 

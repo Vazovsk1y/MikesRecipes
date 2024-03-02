@@ -4,7 +4,7 @@ namespace MikesRecipes.Auth.Implementation.Constants;
 
 public static class Errors
 {
-    private const string CodeBase = "Auth";
+    public const string CodeBase = "Auth";
 
     public static readonly Error InvalidEmailOrPassword = new($"{CodeBase}.{nameof(InvalidEmailOrPassword)}", "Invalid email or password.");
 
@@ -23,5 +23,7 @@ public static class Errors
     public static readonly Error EmailIsAlreadyConfirmed = new($"{CodeBase}.{nameof(EmailIsAlreadyConfirmed)}", "Email is already confirmed.");
 
     public static readonly Error Unauthorized = new($"{CodeBase}.{nameof(Unauthorized)}", "Unauthorized.");
+
+    public static readonly Error EmailConfirmationDisabled = new($"{CodeBase}.{nameof(EmailConfirmationDisabled)}", "Email confirmation disabled.");
     public static Error ConfirmationRequiredFor(string confirmationFor) => new($"{CodeBase}.ConfirmationRequired", $"{confirmationFor} is not confirmed.");
 }
