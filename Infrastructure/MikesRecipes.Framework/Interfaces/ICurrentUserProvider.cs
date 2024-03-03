@@ -1,9 +1,8 @@
-﻿using MikesRecipes.Framework.Contracts;
+﻿using System.Security.Claims;
 
 namespace MikesRecipes.Framework.Interfaces;
 
 public interface ICurrentUserProvider
 {
-    bool IsAuthenticated { get; }
-    CurrentUser? Get();
+    ClaimsPrincipal? GetCurrentUser();
 }

@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Http;
-using MikesRecipes.Framework.Contracts;
 using MikesRecipes.Framework.Interfaces;
 using System.Security.Claims;
 
@@ -17,13 +16,8 @@ public class CurrentUserProvider : ICurrentUserProvider
         _httpContext = httpContext;
     }
 
-    public bool IsAuthenticated => _httpContext.User.Identity?.IsAuthenticated is true;
-
-    public CurrentUser? Get()
+    public ClaimsPrincipal? GetCurrentUser()
     {
-        return IsAuthenticated ?
-            new CurrentUser(Guid.Parse(_httpContext.User.Claims.Single(e => e.Type == ClaimTypes.NameIdentifier).Value), _httpContext.User.Claims)
-            :
-            null;
+        return _httpContext.User;
     }
 }

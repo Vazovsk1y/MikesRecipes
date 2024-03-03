@@ -17,27 +17,50 @@ using System.ComponentModel.DataAnnotations;
 
 namespace MikesRecipes.Auth.Implementation;
 
-public class AuthProvider : BaseAuthService, IAuthProvider
+public class AuthenticationProvider : 
+    BaseAuthService, 
+    IAuthenticationService, 
+    IAuthenticationState
 {
     private readonly IUserConfirmation<User> _confirmation;
     private readonly IEmailConfirmationsSender _emailConfirmationsSender;
     private static readonly EmailAddressAttribute EmailAddressAttribute = new();
     private readonly AuthSignInOptions _signInOptions;
 
-    public AuthProvider(
+    public AuthenticationProvider(
         IClock clock,
         ILogger<BaseService> logger,
         IServiceScopeFactory serviceScopeFactory,
         ICurrentUserProvider currentUserProvider,
         UserManager<User> userManager,
+        SignInManager<User> signInManager,
         IOptions<AuthOptions> authOptions,
         MikesRecipesDbContext dbContext,
         IUserConfirmation<User> confirmation,
-        IEmailConfirmationsSender emailConfirmationsSender) : base(clock, logger, serviceScopeFactory, currentUserProvider, userManager, authOptions, dbContext)
+        IEmailConfirmationsSender emailConfirmationsSender) : base(clock, logger, serviceScopeFactory, currentUserProvider, userManager, authOptions, dbContext, signInManager)
     {
         _confirmation = confirmation;
         _emailConfirmationsSender = emailConfirmationsSender;
         _signInOptions = _authOptions.SignIn;
+    }
+
+    public async Task<Response<User>> IsAuthenticatedAsync(CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var currentUser = _currentUserProvider.GetCurrentUser();
+        if (currentUser is null || currentUser.Identity?.IsAuthenticated is false)
+        {
+            return Response.Failure<User>(Errors.Unauthorized);
+        }
+
+        var user = await _signInManager.ValidateSecurityStampAsync(currentUser);
+        if (user is null || (_signInOptions.RequireConfirmedEmail && !await _userManager.IsEmailConfirmedAsync(user)))
+        {
+            return Response.Failure<User>(Errors.Unauthorized);
+        }
+
+        return user;
     }
 
     public async Task<Response> ResendEmailConfirmationAsync(string email, CancellationToken cancellationToken = default)
@@ -67,7 +90,7 @@ public class AuthProvider : BaseAuthService, IAuthProvider
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        var isAuthenticatedResponse = await IsAuthenticated();
+        var isAuthenticatedResponse = await IsAuthenticatedAsync(cancellationToken);
         if (isAuthenticatedResponse.IsFailure)
         {
             return isAuthenticatedResponse;
@@ -191,7 +214,7 @@ public class AuthProvider : BaseAuthService, IAuthProvider
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        var isAuthenticatedResponse = await IsAuthenticated();
+        var isAuthenticatedResponse = await IsAuthenticatedAsync(cancellationToken);
         if (isAuthenticatedResponse.IsFailure)
         {
             return Response.Failure<TokensDTO>(isAuthenticatedResponse.Errors);

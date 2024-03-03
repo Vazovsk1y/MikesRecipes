@@ -3,7 +3,7 @@ using MikesRecipes.Domain.Shared;
 
 namespace MikesRecipes.Auth;
 
-public interface IAuthProvider
+public interface IAuthenticationService
 {
 	Task<Response<TokensDTO>> LoginAsync(UserLoginDTO userLoginDTO, CancellationToken cancellationToken = default);
 

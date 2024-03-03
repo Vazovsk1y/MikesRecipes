@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using MikesRecipes.Auth;
 using MikesRecipes.DAL;
 using MikesRecipes.Domain.Models;
 using MikesRecipes.Domain.Shared;
@@ -8,7 +9,6 @@ using MikesRecipes.Framework;
 using MikesRecipes.Framework.Interfaces;
 using MikesRecipes.Services.Contracts;
 using MikesRecipes.Services.Contracts.Common;
-using MikesRecipes.Services.Implementation.Constants;
 using MikesRecipes.Services.Implementation.Extensions;
 using System.Data;
 
@@ -21,7 +21,8 @@ public class RecipeService : BaseApplicationService, IRecipeService
         ILogger<BaseService> logger, 
         IServiceScopeFactory serviceScopeFactory,
         MikesRecipesDbContext dbContext, 
-        ICurrentUserProvider currentUserProvider) : base(clock, logger, serviceScopeFactory, dbContext, currentUserProvider)
+        ICurrentUserProvider currentUserProvider,
+        IAuthenticationState authenticationState) : base(clock, logger, serviceScopeFactory, dbContext, currentUserProvider, authenticationState)
     {
     }
 
@@ -29,9 +30,10 @@ public class RecipeService : BaseApplicationService, IRecipeService
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        if (!_currentUserProvider.IsAuthenticated)
+        var isAuthenticatedResponse = await _authenticationState.IsAuthenticatedAsync(cancellationToken);
+        if (isAuthenticatedResponse.IsFailure)
         {
-            return Response.Failure<RecipesPage>(Errors.Unauthorized);
+            return Response.Failure<RecipesPage>(isAuthenticatedResponse.Errors);
         }
 
         var validationResult = Validate(pagingOptions);
@@ -61,9 +63,10 @@ public class RecipeService : BaseApplicationService, IRecipeService
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        if (!_currentUserProvider.IsAuthenticated)
+        var isAuthenticatedResponse = await _authenticationState.IsAuthenticatedAsync(cancellationToken);
+        if (isAuthenticatedResponse.IsFailure)
         {
-            return Response.Failure<RecipesPage>(Errors.Unauthorized);
+            return Response.Failure<RecipesPage>(isAuthenticatedResponse.Errors);
         }
 
         var validationResult = Validate(pagingOptions, filter);

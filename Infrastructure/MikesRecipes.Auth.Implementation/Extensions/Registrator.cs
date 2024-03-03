@@ -11,6 +11,8 @@ using System.Reflection;
 using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using MikesRecipes.Auth.Implementation.Options;
+using System.IdentityModel.Tokens.Jwt;
+using Microsoft.IdentityModel.JsonWebTokens;
 
 namespace MikesRecipes.Auth.Implementation.Extensions;
 
@@ -18,7 +20,16 @@ public static class Registrator
 {
     public static IServiceCollection AddAuth(this IServiceCollection services, IConfiguration configuration)
     {
-        services.AddScoped<IAuthProvider, AuthProvider>();
+        services.AddScoped<AuthenticationProvider>();
+        services.AddScoped<IAuthenticationService>(e =>
+        {
+            return e.GetRequiredService<AuthenticationProvider>();
+        });
+        services.AddScoped<IAuthenticationState>(e =>
+        {
+            return e.GetRequiredService<AuthenticationProvider>();
+        });
+
         services.AddScoped<IEmailConfirmationsSender, EmailConfirmationsSender>();
         services.AddScoped<IUserProfileService, UserProfileService>();
         services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
@@ -33,20 +44,28 @@ public static class Registrator
         var identityOptions = authOptions.ToIdentityOptions();
 
         services
-            .AddTransient(e =>
+            .AddIdentityCore<User>(e =>
             {
-                return Microsoft.Extensions.Options.Options.Create(identityOptions);
+                e.User = identityOptions.User;
+                e.SignIn = identityOptions.SignIn;
+                e.ClaimsIdentity = identityOptions.ClaimsIdentity;
+                e.Password = identityOptions.Password;
+                e.Lockout = identityOptions.Lockout;
+                e.Tokens = identityOptions.Tokens;
+                e.Stores = identityOptions.Stores;
             })
-            .AddIdentityCore<User>()
             .AddRoles<Role>()
             .AddSignInManager<SignInManager<User>>()
             .AddEntityFrameworkStores<MikesRecipesDbContext>()
+            .AddClaimsPrincipalFactory<AuthUserClaimsPrincipalFactory>()
             .AddTokenProvider<RefreshTokenProvider>(TokenProviders.RefreshTokenProvider.LoginProvider)
             .AddTokenProvider<AccessTokenProvider>(TokenProviders.AccessTokenProvider.LoginProvider)
-            .AddClaimsPrincipalFactory<AuthUserClaimsPrincipalFactory>()
             .AddDefaultTokenProviders();
 
         var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(authOptions.Tokens.Jwt.SecretKey));
+
+        JsonWebTokenHandler.DefaultInboundClaimTypeMap.Clear();
+        JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
 
         services.AddAuthentication(e =>
         {

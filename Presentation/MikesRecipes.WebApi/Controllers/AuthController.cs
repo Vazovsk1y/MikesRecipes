@@ -13,15 +13,15 @@ using System.Text;
 namespace MikesRecipes.WebApi.Controllers;
 
 [ApiVersion(ApiVersions.V1Dot0)]
-public class AuthController(IAuthProvider authProvider) : BaseController
+public class AuthController(IAuthenticationService authenticationService) : BaseController
 {
-    private readonly IAuthProvider _authProvider = authProvider;
+    private readonly IAuthenticationService _authenticationService = authenticationService;
 
     [HttpPost("sign-up")]
     public async Task<IActionResult> Register(UserRegisterModel registerModel, CancellationToken cancellationToken)
     {
         var dto = registerModel.ToDTO();
-        var result = await _authProvider.RegisterAsync(dto, cancellationToken);
+        var result = await _authenticationService.RegisterAsync(dto, cancellationToken);
         return result.IsSuccess ? Ok() : BadRequest(result.Errors);
     }
 
@@ -29,15 +29,15 @@ public class AuthController(IAuthProvider authProvider) : BaseController
     public async Task<IActionResult> Login(UserLoginModel loginModel, CancellationToken cancellationToken)
     {
         var dto = loginModel.ToDTO();
-        var result = await _authProvider.LoginAsync(dto, cancellationToken);
+        var result = await _authenticationService.LoginAsync(dto, cancellationToken);
         return result.IsSuccess ? Ok(result.Value) : BadRequest(result.Errors);
     }
 
     [Authorize]
     [HttpPost("refresh")]
-    public async Task<IActionResult> RefreshAccessToken([Required]string refreshToken, CancellationToken cancellationToken)
+    public async Task<IActionResult> RefreshTokens([Required]string refreshToken, CancellationToken cancellationToken)
     {
-        var result = await _authProvider.RefreshTokensAsync(refreshToken, cancellationToken);
+        var result = await _authenticationService.RefreshTokensAsync(refreshToken, cancellationToken);
         return result.IsSuccess ? Ok(result.Value) : BadRequest(result.Errors);
     }
 
@@ -54,9 +54,9 @@ public class AuthController(IAuthProvider authProvider) : BaseController
         }
 
         var result = string.IsNullOrWhiteSpace(newEmail) ?
-            await _authProvider.ConfirmEmailAsync(new EmailConfirmationDTO(userId, token), cancellationToken)
+            await _authenticationService.ConfirmEmailAsync(new EmailConfirmationDTO(userId, token), cancellationToken)
             :
-            await _authProvider.ConfirmEmailChangeAsync(new EmailChangeConfirmationDTO(userId, token, newEmail), cancellationToken);
+            await _authenticationService.ConfirmEmailChangeAsync(new EmailChangeConfirmationDTO(userId, token, newEmail), cancellationToken);
 
         return result.IsSuccess ? Ok() : BadRequest(result.Errors);
     }
@@ -65,14 +65,14 @@ public class AuthController(IAuthProvider authProvider) : BaseController
     [HttpDelete("revoke")]
     public async Task<IActionResult> RevokeRefreshToken(CancellationToken cancellationToken)
     {
-        var result = await _authProvider.RevokeRefreshTokenAsync(cancellationToken);
+        var result = await _authenticationService.RevokeRefreshTokenAsync(cancellationToken);
         return result.IsSuccess ? Ok() : BadRequest(result.Errors);
     }
 
     [HttpPost("resend-email-confirmation")]
     public async Task<IActionResult> ResendEmailConfirmation([Required][EmailAddress]string email, CancellationToken cancellationToken)
     {
-        var result = await _authProvider.ResendEmailConfirmationAsync(email, cancellationToken);
+        var result = await _authenticationService.ResendEmailConfirmationAsync(email, cancellationToken);
         return result.IsSuccess ? Ok() : BadRequest(result.Errors);
     }
 }

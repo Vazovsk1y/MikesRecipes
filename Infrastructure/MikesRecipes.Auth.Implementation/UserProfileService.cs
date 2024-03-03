@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -17,6 +16,7 @@ namespace MikesRecipes.Auth.Implementation;
 public class UserProfileService : BaseAuthService, IUserProfileService
 {
     private readonly IEmailConfirmationsSender _emailConfirmationsSender;
+    private readonly IAuthenticationState _authenticationState;
     private static readonly EmailAddressAttribute EmailAddressAttribute = new();
     private readonly AuthSignInOptions _signInOptions;
 
@@ -28,8 +28,11 @@ public class UserProfileService : BaseAuthService, IUserProfileService
         UserManager<User> userManager,
         IEmailConfirmationsSender emailConfirmationsSender,
         IOptions<AuthOptions> authOptions,
-        MikesRecipesDbContext dbContext) : base(clock, logger, serviceScopeFactory, currentUserProvider, userManager, authOptions, dbContext)
+        MikesRecipesDbContext dbContext,
+        SignInManager<User> signInManager,
+        IAuthenticationState authenticationState) : base(clock, logger, serviceScopeFactory, currentUserProvider, userManager, authOptions, dbContext, signInManager)
     {
+        _authenticationState = authenticationState;
         _emailConfirmationsSender = emailConfirmationsSender;
         _signInOptions = _authOptions.SignIn;
     }
@@ -38,7 +41,7 @@ public class UserProfileService : BaseAuthService, IUserProfileService
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        var isAuthenticatedResponse = await IsAuthenticated();
+        var isAuthenticatedResponse = await _authenticationState.IsAuthenticatedAsync(cancellationToken);
         if (isAuthenticatedResponse.IsFailure)
         {
             return isAuthenticatedResponse;

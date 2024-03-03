@@ -2,12 +2,12 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
 using MikesRecipes.Auth.Implementation.Constants;
 using MikesRecipes.Auth.Implementation.Options;
 using MikesRecipes.Domain.Models;
 using MikesRecipes.Framework.Interfaces;
-using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 
@@ -49,7 +49,7 @@ public class AccessTokenProvider : IUserTwoFactorTokenProvider<User>
         return GenerateJwtAccessToken(claimsPrincipal.Claims);
     }
 
-    public Task<bool> ValidateAsync(string purpose, string token, UserManager<User> manager, User user)
+    public async Task<bool> ValidateAsync(string purpose, string token, UserManager<User> manager, User user)
     {
         ArgumentNullException.ThrowIfNull(manager);
         ArgumentNullException.ThrowIfNull(user);
@@ -61,11 +61,17 @@ public class AccessTokenProvider : IUserTwoFactorTokenProvider<User>
 
         if (string.IsNullOrWhiteSpace(token))
         {
-            return Task.FromResult(false);
+            return false;
         }
 
-        var claimsPrincipal = GetClaimsPrincipalFromJwtToken(token);
-        return Task.FromResult(claimsPrincipal is not null && user.Id == Guid.Parse(claimsPrincipal.Claims.Single(e => e.Type == ClaimTypes.NameIdentifier).Value));
+        var claimsPrincipal = await GetClaimsPrincipalFromJwtToken(token);
+        if (claimsPrincipal is null)
+        {
+            return false;
+        }
+
+        string? userId = manager.GetUserId(claimsPrincipal);
+        return !string.IsNullOrWhiteSpace(userId) && Guid.Parse(userId) == user.Id;
     }
 
     private string GenerateJwtAccessToken(IEnumerable<Claim> claims)
@@ -73,30 +79,31 @@ public class AccessTokenProvider : IUserTwoFactorTokenProvider<User>
         using var scope = _serviceScopeFactory.CreateScope();
         var clock = scope.ServiceProvider.GetRequiredService<IClock>();
 
-        var expiryDate = clock.GetDateTimeUtcNow().Add(_authOptions.Tokens.Jwt.TokenLifetime);
+        var currentDate = clock.GetDateTimeUtcNow();
+        var expiryDate = currentDate.Add(_authOptions.Tokens.Jwt.TokenLifetime);
         var signingCredentials = new SigningCredentials(
             new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_authOptions.Tokens.Jwt.SecretKey)),
             SecurityAlgorithms.HmacSha256
             );
 
-        var token = new JwtSecurityToken(
-            _authOptions.Tokens.Jwt.Issuer,
-            _authOptions.Tokens.Jwt.Audience,
-            claims,
-            null,
-            expiryDate,
-            signingCredentials
-            );
+        var descriptor = new SecurityTokenDescriptor
+        {
+            Issuer = _authOptions.Tokens.Jwt.Issuer,
+            Audience = _authOptions.Tokens.Jwt.Audience,
+            Claims = claims.ToDictionary(e => e.Type, e => (object)e.Value),
+            Expires = expiryDate,
+            SigningCredentials = signingCredentials,
+            NotBefore = currentDate,
+            IssuedAt = currentDate,
+        };
 
-        string tokenValue = new JwtSecurityTokenHandler().WriteToken(token);
-
+        string tokenValue = new JsonWebTokenHandler().CreateToken(descriptor);
         return tokenValue;
     }
 
-    private ClaimsPrincipal? GetClaimsPrincipalFromJwtToken(string token)
+    private async Task<ClaimsPrincipal?> GetClaimsPrincipalFromJwtToken(string token)
     {
         var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_authOptions.Tokens.Jwt.SecretKey));
-
         var tokenValidationParametrs = new TokenValidationParameters
         {
             ValidateIssuer = true,
@@ -110,8 +117,9 @@ public class AccessTokenProvider : IUserTwoFactorTokenProvider<User>
 
         try
         {
-            var handler = new JwtSecurityTokenHandler();
-            return handler.ValidateToken(token, tokenValidationParametrs, out _);
+            var handler = new JsonWebTokenHandler();
+            var validationResult = await handler.ValidateTokenAsync(token, tokenValidationParametrs);
+            return validationResult.IsValid ? new ClaimsPrincipal(validationResult.ClaimsIdentity) : null;
         }
         catch (Exception ex)
         {

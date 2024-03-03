@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using MikesRecipes.Auth;
 using MikesRecipes.DAL;
 using MikesRecipes.Domain.Shared;
 using MikesRecipes.Framework;
@@ -18,18 +19,22 @@ internal class ProductService : BaseApplicationService, IProductService
 		ILogger<BaseService> logger, 
 		IServiceScopeFactory serviceScopeFactory,
 		MikesRecipesDbContext dbContext, 
-		ICurrentUserProvider currentUserProvider) : base(clock, logger, serviceScopeFactory, dbContext, currentUserProvider)
+		ICurrentUserProvider currentUserProvider,
+		IAuthenticationState authenticationState) : base(clock, logger, serviceScopeFactory, dbContext, currentUserProvider, authenticationState)
     {
     }
 
     public async Task<Response<IReadOnlyCollection<ProductDTO>>> GetByTitleAsync(string searchTerm, CancellationToken cancellationToken = default)
 	{
-		if (!_currentUserProvider.IsAuthenticated)
-		{
-			return Response.Failure<IReadOnlyCollection<ProductDTO>>(Errors.Unauthorized);
-		}
+		cancellationToken.ThrowIfCancellationRequested();
 
-		if (string.IsNullOrWhiteSpace(searchTerm))
+        var isAuthenticatedResponse = await _authenticationState.IsAuthenticatedAsync(cancellationToken);
+        if (isAuthenticatedResponse.IsFailure)
+        {
+            return Response.Failure<IReadOnlyCollection<ProductDTO>>(isAuthenticatedResponse.Errors);
+        }
+
+        if (string.IsNullOrWhiteSpace(searchTerm))
 		{
 			return Response.Failure<IReadOnlyCollection<ProductDTO>>(Errors.NullOrWhiteSpaceString("Search term"));
 		}
