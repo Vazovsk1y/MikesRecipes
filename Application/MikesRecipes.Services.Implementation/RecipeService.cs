@@ -30,7 +30,7 @@ public class RecipeService : BaseApplicationService, IRecipeService
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        var isAuthenticatedResponse = await _authenticationState.IsAuthenticatedAsync(cancellationToken);
+        var isAuthenticatedResponse = await _authenticationState.IsAuthenticatedAsync(cancellationToken: cancellationToken);
         if (isAuthenticatedResponse.IsFailure)
         {
             return Response.Failure<RecipesPage>(isAuthenticatedResponse.Errors);
@@ -63,7 +63,7 @@ public class RecipeService : BaseApplicationService, IRecipeService
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        var isAuthenticatedResponse = await _authenticationState.IsAuthenticatedAsync(cancellationToken);
+        var isAuthenticatedResponse = await _authenticationState.IsAuthenticatedAsync(cancellationToken: cancellationToken);
         if (isAuthenticatedResponse.IsFailure)
         {
             return Response.Failure<RecipesPage>(isAuthenticatedResponse.Errors);

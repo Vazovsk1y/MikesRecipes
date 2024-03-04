@@ -44,7 +44,7 @@ public class AuthenticationProvider :
         _signInOptions = _authOptions.SignIn;
     }
 
-    public async Task<Response<User>> IsAuthenticatedAsync(CancellationToken cancellationToken = default)
+    public async Task<Response<User>> IsAuthenticatedAsync(bool checkEmail = true, bool checkSecurityStamp = true, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -54,8 +54,12 @@ public class AuthenticationProvider :
             return Response.Failure<User>(Errors.Unauthorized);
         }
 
-        var user = await _signInManager.ValidateSecurityStampAsync(currentUser);
-        if (user is null || (_signInOptions.RequireConfirmedEmail && !await _userManager.IsEmailConfirmedAsync(user)))
+        var user = checkSecurityStamp ? 
+            await _signInManager.ValidateSecurityStampAsync(currentUser)
+            :
+            await _userManager.GetUserAsync(currentUser);
+
+        if (user is null || (checkEmail && _signInOptions.RequireConfirmedEmail && !await _userManager.IsEmailConfirmedAsync(user)))
         {
             return Response.Failure<User>(Errors.Unauthorized);
         }
@@ -90,7 +94,7 @@ public class AuthenticationProvider :
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        var isAuthenticatedResponse = await IsAuthenticatedAsync(cancellationToken);
+        var isAuthenticatedResponse = await IsAuthenticatedAsync(cancellationToken: cancellationToken);
         if (isAuthenticatedResponse.IsFailure)
         {
             return isAuthenticatedResponse;
@@ -214,7 +218,7 @@ public class AuthenticationProvider :
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        var isAuthenticatedResponse = await IsAuthenticatedAsync(cancellationToken);
+        var isAuthenticatedResponse = await IsAuthenticatedAsync(cancellationToken: cancellationToken);
         if (isAuthenticatedResponse.IsFailure)
         {
             return Response.Failure<TokensDTO>(isAuthenticatedResponse.Errors);

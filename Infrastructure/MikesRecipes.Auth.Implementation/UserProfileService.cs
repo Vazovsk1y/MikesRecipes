@@ -41,7 +41,7 @@ public class UserProfileService : BaseAuthService, IUserProfileService
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        var isAuthenticatedResponse = await _authenticationState.IsAuthenticatedAsync(cancellationToken);
+        var isAuthenticatedResponse = await _authenticationState.IsAuthenticatedAsync(cancellationToken: cancellationToken);
         if (isAuthenticatedResponse.IsFailure)
         {
             return isAuthenticatedResponse;

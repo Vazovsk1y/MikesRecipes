@@ -28,7 +28,7 @@ internal class ProductService : BaseApplicationService, IProductService
 	{
 		cancellationToken.ThrowIfCancellationRequested();
 
-        var isAuthenticatedResponse = await _authenticationState.IsAuthenticatedAsync(cancellationToken);
+        var isAuthenticatedResponse = await _authenticationState.IsAuthenticatedAsync(cancellationToken: cancellationToken);
         if (isAuthenticatedResponse.IsFailure)
         {
             return Response.Failure<IReadOnlyCollection<ProductDTO>>(isAuthenticatedResponse.Errors);
