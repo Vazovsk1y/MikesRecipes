@@ -5,6 +5,7 @@ using MikesRecipes.Services;
 using MikesRecipes.Services.Contracts.Common;
 using MikesRecipes.WebApi.Constants;
 using MikesRecipes.WebApi.Extensions;
+using MikesRecipes.WebApi.Filters;
 using MikesRecipes.WebApi.ViewModels;
 using System.ComponentModel.DataAnnotations;
 
@@ -12,6 +13,8 @@ namespace MikesRecipes.WebApi.Controllers;
 
 [ApiVersion(ApiVersions.V1Dot0)]
 [Authorize]
+[ValidateSecurityStampFilter]
+[ConfirmedEmailFilter]
 public class RecipesController(IRecipeService recipeService) : BaseController
 {
     private readonly IRecipeService _recipeService = recipeService;

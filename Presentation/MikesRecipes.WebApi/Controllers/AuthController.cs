@@ -6,6 +6,7 @@ using MikesRecipes.Auth;
 using MikesRecipes.Auth.Contracts;
 using MikesRecipes.WebApi.Constants;
 using MikesRecipes.WebApi.Extensions;
+using MikesRecipes.WebApi.Filters;
 using MikesRecipes.WebApi.ViewModels;
 using System.ComponentModel.DataAnnotations;
 using System.Text;
@@ -34,6 +35,8 @@ public class AuthController(IAuthenticationService authenticationService) : Base
     }
 
     [Authorize]
+    [ValidateSecurityStampFilter]
+    [ConfirmedEmailFilter]
     [HttpPost("refresh")]
     public async Task<IActionResult> RefreshTokens([Required]string refreshToken, CancellationToken cancellationToken)
     {
@@ -62,6 +65,8 @@ public class AuthController(IAuthenticationService authenticationService) : Base
     }
 
     [Authorize]
+    [ValidateSecurityStampFilter]
+    [ConfirmedEmailFilter]
     [HttpDelete("revoke")]
     public async Task<IActionResult> RevokeRefreshToken(CancellationToken cancellationToken)
     {
