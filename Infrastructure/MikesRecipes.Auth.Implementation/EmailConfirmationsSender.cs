@@ -122,4 +122,39 @@ public class EmailConfirmationsSender : BaseService, IEmailConfirmationsSender
         var result = await _emailSender.SendEmailAsync(letter, cancellationToken);
         return result;
     }
+
+    public async Task<Response> SendResetPasswordConfirmationLinkAsync(User user, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        const string ActionTitle = "ResetPassword";
+        const string ControllerTitle = "Profiles";
+
+        string token = await _userManager.GeneratePasswordResetTokenAsync(user);
+        token = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(token));
+
+        var urlContext = new UrlActionContext
+        {
+            Action = ActionTitle,
+            Controller = ControllerTitle,
+            Host = _httpContext.Request.Host.Value,
+            Protocol = _httpContext.Request.Scheme,
+            Values = new { email = user.Email, token }
+        };
+
+        string? confirmationLink = _urlHelper.Action(urlContext);
+        ArgumentException.ThrowIfNullOrWhiteSpace(confirmationLink, nameof(confirmationLink));
+
+        const string LetterSubject = "Reset password";
+        const string LetterPurpose = "User reset password letter";
+        string body = $"Please reset your password by <a href='{HtmlEncoder.Default.Encode(confirmationLink)}'>clicking here</a>.";
+        var letter = new EmailDTO(user.Email!, LetterSubject, body)
+        {
+            ToName = user.UserName,
+            Purpose = LetterPurpose
+        };
+
+        var result = await _emailSender.SendEmailAsync(letter, cancellationToken);
+        return result;
+    }
 }
