@@ -120,4 +120,12 @@ public class ProfilesController(IUserProfileService userProfileService) : BaseCo
         var result = await _userProfileService.ResetPasswordAsync(dto, cancellationToken);
         return result.IsSuccess ? Ok() : BadRequest(result.Errors);
     }
+
+    [HttpGet("info")]
+    [Authorize, ValidateSecurityStampFilter, ConfirmedEmailFilter]
+    public async Task<IActionResult> Info(CancellationToken cancellationToken)
+    {
+        var result = await _userProfileService.GetProfileInfoAsync(cancellationToken);
+        return result.IsSuccess ? Ok(result.Value) : BadRequest(result.Errors);
+    }
 }

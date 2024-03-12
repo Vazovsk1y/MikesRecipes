@@ -119,4 +119,12 @@ public class UserProfileService : BaseAuthService, IUserProfileService
                 }
         }
     }
+
+    public async Task<Response<UserProfileDTO>> GetProfileInfoAsync(CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var authResult = await _authenticationState.IsAuthenticatedAsync(cancellationToken: cancellationToken);
+        return authResult.IsFailure ? Response.Failure<UserProfileDTO>(authResult.Errors) : authResult.Value.ToDTO();
+    }
 }

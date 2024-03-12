@@ -10,4 +10,6 @@ public interface IUserProfileService
 	Task<Response> ForgotPasswordAsync(string email, CancellationToken cancellationToken = default);
 
 	Task<Response> ResetPasswordAsync(ResetPasswordDTO resetPasswordDTO, CancellationToken cancellationToken = default);
+
+	Task<Response<UserProfileDTO>> GetProfileInfoAsync(CancellationToken cancellationToken = default);
 }
