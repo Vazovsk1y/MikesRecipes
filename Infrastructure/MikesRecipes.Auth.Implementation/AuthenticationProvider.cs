@@ -104,8 +104,8 @@ public class AuthenticationProvider :
         var refreshToken = await _dbContext
             .UserTokens
             .SingleOrDefaultAsync(e => e.UserId == user.Id
-            && e.LoginProvider == TokenProviders.RefreshTokenProvider.LoginProvider
-            && e.Name == TokenProviders.RefreshTokenProvider.Name, cancellationToken);
+            && e.LoginProvider == RefreshTokenProvider.LoginProvider
+            && e.Name == RefreshTokenProvider.Name, cancellationToken);
 
         if (refreshToken is not null)
         {
@@ -179,14 +179,22 @@ public class AuthenticationProvider :
         }
 
         User user = canLoginResult.Value;
-        string accessToken = await _userManager.GenerateUserTokenAsync(user, TokenProviders.AccessTokenProvider.LoginProvider, TokenProviders.AccessTokenProvider.Name);
-        string refreshTokenValue = await _userManager.GenerateUserTokenAsync(user, TokenProviders.RefreshTokenProvider.LoginProvider, TokenProviders.RefreshTokenProvider.Name);
+        string accessToken = await _userManager.GenerateUserTokenAsync(user, AccessTokenProvider.LoginProvider, AccessTokenProvider.Name);
+        string refreshTokenValue = await _userManager.GenerateUserTokenAsync(user, RefreshTokenProvider.LoginProvider, RefreshTokenProvider.Name);
 
+        await ModifyOrCreateRefreshToken(user, refreshTokenValue, cancellationToken);
+        await _userManager.ResetAccessFailedCountAsync(user);
+        await _dbContext.SaveChangesAsync(cancellationToken);
+        return new TokensDTO(accessToken, refreshTokenValue);
+    }
+
+    private async Task ModifyOrCreateRefreshToken(User user, string refreshTokenValue, CancellationToken cancellationToken)
+    {
         var refreshToken = await _dbContext
-            .UserTokens
-            .SingleOrDefaultAsync(e => e.UserId == user.Id
-            && e.LoginProvider == TokenProviders.RefreshTokenProvider.LoginProvider
-            && e.Name == TokenProviders.RefreshTokenProvider.Name, cancellationToken);
+                    .UserTokens
+                    .SingleOrDefaultAsync(e => e.UserId == user.Id
+                    && e.LoginProvider == RefreshTokenProvider.LoginProvider
+                    && e.Name == RefreshTokenProvider.Name, cancellationToken);
 
         var currentDate = _clock.GetDateTimeOffsetUtcNow();
 
@@ -197,8 +205,8 @@ public class AuthenticationProvider :
                 ExpiryDate = currentDate.Add(_authOptions.Tokens.Refresh.TokenLifetime),
                 Value = refreshTokenValue,
                 UserId = user.Id,
-                LoginProvider = TokenProviders.RefreshTokenProvider.LoginProvider,
-                Name = TokenProviders.RefreshTokenProvider.Name
+                LoginProvider = RefreshTokenProvider.LoginProvider,
+                Name = RefreshTokenProvider.Name
             };
 
             _dbContext.UserTokens.Add(refreshToken);
@@ -208,10 +216,6 @@ public class AuthenticationProvider :
             refreshToken.ExpiryDate = currentDate.Add(_authOptions.Tokens.Refresh.TokenLifetime);
             refreshToken.Value = refreshTokenValue;
         }
-
-        await _userManager.ResetAccessFailedCountAsync(user);
-        await _dbContext.SaveChangesAsync(cancellationToken);
-        return new TokensDTO(accessToken, refreshTokenValue);
     }
 
     public async Task<Response<TokensDTO>> RefreshTokensAsync(string refreshToken, CancellationToken cancellationToken = default)
@@ -227,8 +231,8 @@ public class AuthenticationProvider :
         User user = isAuthenticatedResponse.Value;
         bool refreshTokenVerificationResult = await _userManager.VerifyUserTokenAsync(
             user, 
-            TokenProviders.RefreshTokenProvider.LoginProvider,
-            TokenProviders.RefreshTokenProvider.Name,
+            RefreshTokenProvider.LoginProvider,
+            RefreshTokenProvider.Name,
             refreshToken);
 
         if (!refreshTokenVerificationResult)
@@ -240,11 +244,11 @@ public class AuthenticationProvider :
            .UserTokens
            .SingleAsync(e => 
            e.UserId == user.Id
-           && e.LoginProvider == TokenProviders.RefreshTokenProvider.LoginProvider
-           && e.Name == TokenProviders.RefreshTokenProvider.Name, cancellationToken);
+           && e.LoginProvider == RefreshTokenProvider.LoginProvider
+           && e.Name == RefreshTokenProvider.Name, cancellationToken);
 
-        string newRefreshTokenValue = await _userManager.GenerateUserTokenAsync(user, TokenProviders.RefreshTokenProvider.LoginProvider, TokenProviders.RefreshTokenProvider.Name);
-        string newAccessToken = await _userManager.GenerateUserTokenAsync(user, TokenProviders.AccessTokenProvider.LoginProvider, TokenProviders.AccessTokenProvider.Name);
+        string newRefreshTokenValue = await _userManager.GenerateUserTokenAsync(user, RefreshTokenProvider.LoginProvider, RefreshTokenProvider.Name);
+        string newAccessToken = await _userManager.GenerateUserTokenAsync(user, AccessTokenProvider.LoginProvider, AccessTokenProvider.Name);
 
         var currentDate = _clock.GetDateTimeOffsetUtcNow();
         existingRefreshToken.ExpiryDate = currentDate.Add(_authOptions.Tokens.Refresh.TokenLifetime);

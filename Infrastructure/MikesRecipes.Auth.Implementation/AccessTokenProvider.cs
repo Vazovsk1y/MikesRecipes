@@ -4,7 +4,6 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
-using MikesRecipes.Auth.Implementation.Constants;
 using MikesRecipes.Auth.Implementation.Options;
 using MikesRecipes.Domain.Models;
 using MikesRecipes.Framework.Interfaces;
@@ -15,6 +14,10 @@ namespace MikesRecipes.Auth.Implementation;
 
 public class AccessTokenProvider : IUserTwoFactorTokenProvider<User>
 {
+    public const string Name = "Access_token";
+
+    public const string LoginProvider = "Jwt";
+
     private readonly AuthOptions _authOptions;
     private readonly ILogger _logger;
     private readonly IServiceScopeFactory _serviceScopeFactory;
@@ -54,7 +57,7 @@ public class AccessTokenProvider : IUserTwoFactorTokenProvider<User>
         ArgumentNullException.ThrowIfNull(manager);
         ArgumentNullException.ThrowIfNull(user);
 
-        if (purpose != TokenProviders.AccessTokenProvider.Name)
+        if (purpose != Name)
         {
             throw new InvalidOperationException($"Invalid access token purpose.");
         }

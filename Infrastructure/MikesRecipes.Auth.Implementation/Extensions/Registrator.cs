@@ -1,9 +1,7 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using MikesRecipes.Auth.Implementation.Constants;
 using MikesRecipes.DAL;
 using MikesRecipes.Domain.Models;
-using MikesRecipes.Services.Implementation;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.AspNetCore.Identity;
 using System.Text;
@@ -58,8 +56,8 @@ public static class Registrator
             .AddSignInManager<SignInManager<User>>()
             .AddEntityFrameworkStores<MikesRecipesDbContext>()
             .AddClaimsPrincipalFactory<AuthUserClaimsPrincipalFactory>()
-            .AddTokenProvider<RefreshTokenProvider>(TokenProviders.RefreshTokenProvider.LoginProvider)
-            .AddTokenProvider<AccessTokenProvider>(TokenProviders.AccessTokenProvider.LoginProvider)
+            .AddTokenProvider<RefreshTokenProvider>(RefreshTokenProvider.LoginProvider)
+            .AddTokenProvider<AccessTokenProvider>(AccessTokenProvider.LoginProvider)
             .AddDefaultTokenProviders();
 
         var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(authOptions.Tokens.Jwt.SecretKey));

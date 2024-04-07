@@ -2,17 +2,20 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using MikesRecipes.Auth.Implementation.Constants;
 using MikesRecipes.DAL;
 using MikesRecipes.Domain.Models;
 using MikesRecipes.Framework;
 using MikesRecipes.Framework.Interfaces;
 using System.Security.Cryptography;
 
-namespace MikesRecipes.Services.Implementation;
+namespace MikesRecipes.Auth.Implementation;
 
 public class RefreshTokenProvider : IUserTwoFactorTokenProvider<User>
 {
+    public const string Name = "Refresh_token";
+
+    public const string LoginProvider = "MikesRecipes";
+
     private readonly ILogger<BaseService> _logger;
     private readonly IServiceScopeFactory _serviceScopeFactory;
 
@@ -45,7 +48,7 @@ public class RefreshTokenProvider : IUserTwoFactorTokenProvider<User>
         ArgumentNullException.ThrowIfNull(manager);
         ArgumentNullException.ThrowIfNull(user);
 
-        if (purpose != TokenProviders.RefreshTokenProvider.Name)
+        if (purpose != Name)
         {
             throw new InvalidOperationException("Invalid purpose for refresh token.");
         }
@@ -62,7 +65,7 @@ public class RefreshTokenProvider : IUserTwoFactorTokenProvider<User>
         var refreshToken = await dbContext
             .UserTokens
             .SingleOrDefaultAsync(e => e.UserId == user.Id
-            && e.LoginProvider == TokenProviders.RefreshTokenProvider.LoginProvider
+            && e.LoginProvider == LoginProvider
             && e.Name == purpose);
 
         var currentDate = clock.GetDateTimeOffsetUtcNow();
