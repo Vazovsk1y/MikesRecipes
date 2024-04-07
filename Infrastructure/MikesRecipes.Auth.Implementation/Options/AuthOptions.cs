@@ -30,4 +30,8 @@ public record AuthOptions
     [Required]
     [ValidateObjectMembers]
     public required AuthTokensOptions Tokens { get; init; }
+
+    [Required]
+    [ValidateObjectMembers]
+    public required ExternalOptions External { get; init; }
 }

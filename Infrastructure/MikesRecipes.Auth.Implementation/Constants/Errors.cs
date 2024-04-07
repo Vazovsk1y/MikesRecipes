@@ -25,5 +25,7 @@ public static class Errors
     public static readonly Error Unauthorized = new($"{CodeBase}.{nameof(Unauthorized)}", "Unauthorized.");
 
     public static readonly Error EmailConfirmationDisabled = new($"{CodeBase}.{nameof(EmailConfirmationDisabled)}", "Email confirmation disabled.");
+
+    public static readonly Error InvalidGoogleIdToken = new($"{CodeBase}.{nameof(InvalidGoogleIdToken)}", "Invalid google id token.");
     public static Error ConfirmationRequiredFor(string confirmationFor) => new($"{CodeBase}.ConfirmationRequired", $"{confirmationFor} is not confirmed.");
 }
