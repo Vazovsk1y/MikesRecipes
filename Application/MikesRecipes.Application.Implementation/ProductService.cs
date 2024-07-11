@@ -7,27 +7,26 @@ using MikesRecipes.DAL;
 using MikesRecipes.Domain.Shared;
 using MikesRecipes.Framework;
 using MikesRecipes.Framework.Interfaces;
-using MikesRecipes.Application.Contracts;
 using MikesRecipes.Application.Contracts.Requests;
 using MikesRecipes.Application.Contracts.Responses;
-using MikesRecipes.Services.Implementation.Constants;
-using MikesRecipes.Services.Implementation.Extensions;
+using MikesRecipes.Application.Implementation.Extensions;
 
-namespace MikesRecipes.Services.Implementation;
+namespace MikesRecipes.Application.Implementation;
 
-internal class ProductService : BaseApplicationService, IProductService
+internal class ProductService(
+	IClock clock,
+	ILogger<BaseService> logger,
+	IServiceScopeFactory serviceScopeFactory,
+	MikesRecipesDbContext dbContext,
+	ICurrentUserProvider currentUserProvider,
+	IAuthenticationState authenticationState)
+	: BaseApplicationService(clock, logger, serviceScopeFactory, dbContext, currentUserProvider, authenticationState),
+		IProductService
 {
-    public ProductService(
-		IClock clock, 
-		ILogger<BaseService> logger, 
-		IServiceScopeFactory serviceScopeFactory,
-		MikesRecipesDbContext dbContext, 
-		ICurrentUserProvider currentUserProvider,
-		IAuthenticationState authenticationState) : base(clock, logger, serviceScopeFactory, dbContext, currentUserProvider, authenticationState)
-    {
-    }
+	private readonly IAuthenticationState _authenticationState = authenticationState;
+	private readonly MikesRecipesDbContext _dbContext = dbContext;
 
-    public async Task<Response<IReadOnlyCollection<ProductDTO>>> GetByTitleAsync(ByTitleFilter filter, CancellationToken cancellationToken = default)
+	public async Task<Response<IReadOnlyCollection<ProductDTO>>> GetByTitleAsync(ByTitleFilter filter, CancellationToken cancellationToken = default)
 	{
 		cancellationToken.ThrowIfCancellationRequested();
 
@@ -37,9 +36,10 @@ internal class ProductService : BaseApplicationService, IProductService
             return Response.Failure<IReadOnlyCollection<ProductDTO>>(isAuthenticatedResponse.Errors);
         }
 
-        if (string.IsNullOrWhiteSpace(filter.Value))
+        var validationResult = Validate(filter);
+        if (validationResult.IsFailure)
 		{
-			return Response.Failure<IReadOnlyCollection<ProductDTO>>(new Error("ff", "ffff"));
+			return Response.Failure<IReadOnlyCollection<ProductDTO>>(validationResult.Errors);
 		}
 
 		var products = await _dbContext

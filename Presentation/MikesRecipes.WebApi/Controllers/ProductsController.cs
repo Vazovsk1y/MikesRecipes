@@ -1,7 +1,6 @@
 ﻿using Asp.Versioning;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using MikesRecipes.Services;
 using MikesRecipes.WebApi.Constants;
 using MikesRecipes.WebApi.Filters;
 using System.ComponentModel.DataAnnotations;

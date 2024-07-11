@@ -1,7 +1,7 @@
 ﻿using FluentValidation;
 using MikesRecipes.Application.Contracts.Common;
 
-namespace MikesRecipes.Services.Implementation.Validators;
+namespace MikesRecipes.Application.Implementation.Validators;
 
 public class PagingOptionsValidator : AbstractValidator<PagingOptions>
 {

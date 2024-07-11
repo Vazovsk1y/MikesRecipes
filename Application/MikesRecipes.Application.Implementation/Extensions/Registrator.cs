@@ -2,15 +2,13 @@
 using Microsoft.Extensions.DependencyInjection;
 using MikesRecipes.Application;
 
-namespace MikesRecipes.Services.Implementation;
+namespace MikesRecipes.Application.Implementation.Extensions;
 
 public static class Registrator
 {
-    public static IServiceCollection AddApplicationLayer(this IServiceCollection services, IConfiguration configuration)
+    public static void AddApplicationLayer(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddScoped<IRecipeService, RecipeService>();
         services.AddScoped<IProductService, ProductService>();
-        
-		return services;
     }
 }

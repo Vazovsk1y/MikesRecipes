@@ -16,7 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Application\MikesRecipes.Services.Implementation\MikesRecipes.Services.Implementation.csproj" />
+    <ProjectReference Include="..\..\Application\MikesRecipes.Application.Implementation\MikesRecipes.Application.Implementation.csproj" />
     <ProjectReference Include="..\..\Infrastructure\MikesRecipes.Auth.Implementation\MikesRecipes.Auth.Implementation.csproj" />
     <ProjectReference Include="..\..\Infrastructure\MikesRecipes.DAL\MikesRecipes.DAL.csproj" />
     <ProjectReference Include="..\..\Infrastructure\MikesRecipes.Framework\MikesRecipes.Framework.csproj" />

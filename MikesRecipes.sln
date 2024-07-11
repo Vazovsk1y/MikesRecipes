@@ -19,7 +19,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Presentation", "Presentatio
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MikesRecipes.WebApi", "Presentation\MikesRecipes.WebApi\MikesRecipes.WebApi.csproj", "{1BBF5510-EE1F-4954-9493-97BB7AD7FB0C}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MikesRecipes.Services.Implementation", "Application\MikesRecipes.Services.Implementation\MikesRecipes.Services.Implementation.csproj", "{AF5B9405-FFDD-4E8B-BB95-0015D6FF38C2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MikesRecipes.Application.Implementation", "Application\MikesRecipes.Application.Implementation\MikesRecipes.Application.Implementation.csproj", "{AF5B9405-FFDD-4E8B-BB95-0015D6FF38C2}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MikesRecipes.Auth", "Infrastructure\MikesRecipes.Auth\MikesRecipes.Auth.csproj", "{E9499BEF-3088-4DF0-A143-F4BDB2C03194}"
 EndProject

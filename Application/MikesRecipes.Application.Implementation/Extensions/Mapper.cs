@@ -2,7 +2,7 @@
 using MikesRecipes.Application.Contracts;
 using MikesRecipes.Application.Contracts.Responses;
 
-namespace MikesRecipes.Services.Implementation.Extensions;
+namespace MikesRecipes.Application.Implementation.Extensions;
 
 internal static class Mapper
 {
