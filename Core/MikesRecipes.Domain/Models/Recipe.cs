@@ -10,9 +10,10 @@ public class Recipe : Entity<RecipeId>
 
 	public required string Url { get; init; }
 
+	// Denormalized field to improve sql query response. 
 	public int IngredientsCount { get; set; }
 
-	public ICollection<Ingredient> Ingredients { get; set; } = new HashSet<Ingredient>();
+	public ICollection<Ingredient> Ingredients { get; init; } = new List<Ingredient>();
 
 	public Recipe() : base() { }
 }

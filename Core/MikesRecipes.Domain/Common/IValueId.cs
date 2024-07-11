@@ -1,6 +1,6 @@
 ﻿namespace MikesRecipes.Domain.Common;
 
-public interface IValueId<T> where T : IValueId<T>
+public interface IValueId<out T> where T : IValueId<T>
 {
 	Guid Value { get; }
 

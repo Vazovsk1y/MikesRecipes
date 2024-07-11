@@ -8,7 +8,7 @@ public class Response
 
 	public IReadOnlyCollection<Error> Errors { get; }
 
-	protected internal Response(bool isSuccess, Error error)
+	protected Response(bool isSuccess, Error error)
 	{
 		if (isSuccess && error != Error.None || !isSuccess && error == Error.None)
 		{
@@ -19,18 +19,19 @@ public class Response
 		Errors = isSuccess ? Array.Empty<Error>() : new List<Error>() { error };
 	}
 
-    protected internal Response(bool isSuccess, IEnumerable<Error> errors)
+    protected Response(bool isSuccess, IEnumerable<Error> errors)
     {
-		if (isSuccess && errors.Any() 
-			|| !isSuccess && errors.Distinct().Count() != errors.Count() 
-			|| !isSuccess && !errors.Any()
-			|| !isSuccess && errors.Contains(Error.None))
+	    var errorsCollection = errors as List<Error> ?? errors.ToList();
+	    if (isSuccess && errorsCollection.Count != 0
+            || !isSuccess && errorsCollection.Distinct().Count() != errorsCollection.Count
+            || !isSuccess && errorsCollection.Count == 0
+            || !isSuccess && errorsCollection.Contains(Error.None))
 		{
             throw new InvalidOperationException("Unable create response.");
         }
 
         IsSuccess = isSuccess;
-        Errors = isSuccess ? Array.Empty<Error>() : new List<Error>(errors);
+        Errors = isSuccess ? Array.Empty<Error>() : errorsCollection;
     }
 
     public static Response Success() => new(true, Error.None);
