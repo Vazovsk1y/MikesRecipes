@@ -1,4 +1,4 @@
-﻿using MikesRecipes.Services.Contracts.Common;
+﻿using MikesRecipes.Application.Contracts.Common;
 
 namespace MikesRecipes.Services.Implementation.Extensions;
 

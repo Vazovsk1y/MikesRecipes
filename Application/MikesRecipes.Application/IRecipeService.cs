@@ -1,8 +1,10 @@
-﻿using MikesRecipes.Domain.Shared;
-using MikesRecipes.Services.Contracts;
-using MikesRecipes.Services.Contracts.Common;
+﻿using MikesRecipes.Application.Contracts;
+using MikesRecipes.Application.Contracts.Common;
+using MikesRecipes.Application.Contracts.Requests;
+using MikesRecipes.Application.Contracts.Responses;
+using MikesRecipes.Domain.Shared;
 
-namespace MikesRecipes.Services;
+namespace MikesRecipes.Application;
 
 public interface IRecipeService
 {

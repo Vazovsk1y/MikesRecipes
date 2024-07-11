@@ -1,12 +1,15 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using MikesRecipes.Application;
 using MikesRecipes.Auth;
 using MikesRecipes.DAL;
 using MikesRecipes.Domain.Shared;
 using MikesRecipes.Framework;
 using MikesRecipes.Framework.Interfaces;
-using MikesRecipes.Services.Contracts;
+using MikesRecipes.Application.Contracts;
+using MikesRecipes.Application.Contracts.Requests;
+using MikesRecipes.Application.Contracts.Responses;
 using MikesRecipes.Services.Implementation.Constants;
 using MikesRecipes.Services.Implementation.Extensions;
 
@@ -24,7 +27,7 @@ internal class ProductService : BaseApplicationService, IProductService
     {
     }
 
-    public async Task<Response<IReadOnlyCollection<ProductDTO>>> GetByTitleAsync(string searchTerm, CancellationToken cancellationToken = default)
+    public async Task<Response<IReadOnlyCollection<ProductDTO>>> GetByTitleAsync(ByTitleFilter filter, CancellationToken cancellationToken = default)
 	{
 		cancellationToken.ThrowIfCancellationRequested();
 
@@ -34,14 +37,14 @@ internal class ProductService : BaseApplicationService, IProductService
             return Response.Failure<IReadOnlyCollection<ProductDTO>>(isAuthenticatedResponse.Errors);
         }
 
-        if (string.IsNullOrWhiteSpace(searchTerm))
+        if (string.IsNullOrWhiteSpace(filter.Value))
 		{
-			return Response.Failure<IReadOnlyCollection<ProductDTO>>(Errors.NullOrWhiteSpaceString("Search term"));
+			return Response.Failure<IReadOnlyCollection<ProductDTO>>(new Error("ff", "ffff"));
 		}
 
 		var products = await _dbContext
 			.Products
-			.Where(pr => pr.Title.Contains(searchTerm))
+			.Where(pr => pr.Title.Contains(filter.Value))
 			.Select(e => e.ToDTO())
 			.ToListAsync(cancellationToken);
 

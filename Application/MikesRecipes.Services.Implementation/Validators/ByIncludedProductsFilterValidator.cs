@@ -1,5 +1,6 @@
 ﻿using FluentValidation;
-using MikesRecipes.Services.Contracts;
+using MikesRecipes.Application.Contracts;
+using MikesRecipes.Application.Contracts.Requests;
 
 namespace MikesRecipes.Services.Implementation.Validators;
 
@@ -7,7 +8,7 @@ public class ByIncludedProductsFilterValidator : AbstractValidator<ByIncludedPro
 {
     public ByIncludedProductsFilterValidator()
     {
-        RuleFor(e => e.ProductIds).NotEmpty()
+        RuleFor(e => e.IncludedProducts).NotEmpty()
        .Must(e =>
         {
             return e.Count() == e.Distinct().Count();

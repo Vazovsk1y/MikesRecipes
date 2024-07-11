@@ -12,7 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Application\MikesRecipes.Services\MikesRecipes.Services.csproj" />
+    <ProjectReference Include="..\MikesRecipes.Application\MikesRecipes.Application.csproj" />
     <ProjectReference Include="..\..\Infrastructure\MikesRecipes.Auth\MikesRecipes.Auth.csproj" />
     <ProjectReference Include="..\..\Infrastructure\MikesRecipes.DAL\MikesRecipes.DAL.csproj" />
     <ProjectReference Include="..\..\Infrastructure\MikesRecipes.Framework\MikesRecipes.Framework.csproj" />

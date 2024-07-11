@@ -1,4 +1,4 @@
-﻿namespace MikesRecipes.Services.Contracts.Common;
+﻿namespace MikesRecipes.Application.Contracts.Common;
 
 public abstract record Page<T>
 {
@@ -25,7 +25,7 @@ public abstract record Page<T>
 
 		Items = items;
 		TotalCount = totalItemsCount;
-		PageIndex = pagingOptions is null ? StartCountingFrom : pagingOptions.PageIndex;
+		PageIndex = pagingOptions?.PageIndex ?? StartCountingFrom;
 		TotalPages = CalculateTotalPages(pagingOptions, totalItemsCount);
 	}
 
@@ -44,14 +44,12 @@ public abstract record Page<T>
 		int totalItemsCount,
 		PagingOptions? pagingOptions)
 	{
-		if (pagingOptions is { PageIndex: <= 0 })
+		switch (pagingOptions)
 		{
-			throw new ArgumentException("Page index must be greater than zero.");
-		}
-
-		if (pagingOptions is { PageSize: <= 0 })
-		{
-			throw new ArgumentException("Page size must be greater than zero.");
+			case { PageIndex: <= 0 }:
+				throw new ArgumentException("Page index must be greater than zero.");
+			case { PageSize: <= 0 }:
+				throw new ArgumentException("Page size must be greater than zero.");
 		}
 
 		if (items.Count > totalItemsCount)

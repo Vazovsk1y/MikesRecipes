@@ -5,6 +5,8 @@ using MikesRecipes.Services;
 using MikesRecipes.WebApi.Constants;
 using MikesRecipes.WebApi.Filters;
 using System.ComponentModel.DataAnnotations;
+using MikesRecipes.Application;
+using MikesRecipes.Application.Contracts.Requests;
 
 namespace MikesRecipes.WebApi.Controllers;
 
@@ -19,7 +21,7 @@ public class ProductsController(IProductService productService) : BaseController
     [HttpGet]
     public async Task<IActionResult> GetByTitleSearchTerm([Required][FromQuery] string searchByTitleTerm, CancellationToken cancellationToken)
     {
-        var result = await _productService.GetByTitleAsync(searchByTitleTerm, cancellationToken);
+        var result = await _productService.GetByTitleAsync(new ByTitleFilter(searchByTitleTerm), cancellationToken);
         return result.IsSuccess ? Ok(result.Value) : BadRequest(result.Errors);
     }
 }

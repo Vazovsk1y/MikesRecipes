@@ -1,3 +1,3 @@
-﻿namespace MikesRecipes.Services.Contracts.Common;
+﻿namespace MikesRecipes.Application.Contracts.Common;
 
 public record PagingOptions(int PageIndex, int PageSize);

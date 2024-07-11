@@ -1,9 +1,7 @@
-﻿using MikesRecipes.Domain.Models;
-
-namespace MikesRecipes.Services.Contracts;
+﻿namespace MikesRecipes.Application.Contracts.Responses;
 
 public record RecipeDTO(
-	RecipeId Id, 
+	Guid Id, 
 	string Title, 
 	string Url, 
 	IReadOnlyCollection<ProductDTO> Products);

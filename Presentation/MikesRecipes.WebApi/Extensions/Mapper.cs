@@ -1,10 +1,10 @@
-﻿using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.WebUtilities;
+﻿using Microsoft.AspNetCore.WebUtilities;
 using MikesRecipes.Auth.Contracts;
 using MikesRecipes.Domain.Models;
-using MikesRecipes.Services.Contracts;
 using MikesRecipes.WebApi.ViewModels;
 using System.Text;
+using MikesRecipes.Application.Contracts;
+using MikesRecipes.Application.Contracts.Requests;
 
 namespace MikesRecipes.WebApi.Extensions;
 

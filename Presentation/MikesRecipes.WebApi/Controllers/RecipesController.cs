@@ -1,13 +1,13 @@
 ﻿using Asp.Versioning;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using MikesRecipes.Services;
-using MikesRecipes.Services.Contracts.Common;
 using MikesRecipes.WebApi.Constants;
 using MikesRecipes.WebApi.Extensions;
 using MikesRecipes.WebApi.Filters;
 using MikesRecipes.WebApi.ViewModels;
 using System.ComponentModel.DataAnnotations;
+using MikesRecipes.Application;
+using MikesRecipes.Application.Contracts.Common;
 
 namespace MikesRecipes.WebApi.Controllers;
 

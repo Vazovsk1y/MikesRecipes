@@ -11,7 +11,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Application", "Application"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MikesRecipes.Domain", "Core\MikesRecipes.Domain\MikesRecipes.Domain.csproj", "{DE15DD65-1BB3-42C9-A8F8-FD7B1B320605}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MikesRecipes.Services", "Application\MikesRecipes.Services\MikesRecipes.Services.csproj", "{0F9D9746-7929-4D9D-BFBA-1CF906929460}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MikesRecipes.Application", "Application\MikesRecipes.Application\MikesRecipes.Application.csproj", "{0F9D9746-7929-4D9D-BFBA-1CF906929460}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MikesRecipes.DAL", "Infrastructure\MikesRecipes.DAL\MikesRecipes.DAL.csproj", "{D895F10F-82B1-4915-AE55-889E89122EEF}"
 EndProject

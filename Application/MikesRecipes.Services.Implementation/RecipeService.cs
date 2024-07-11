@@ -7,10 +7,12 @@ using MikesRecipes.Domain.Models;
 using MikesRecipes.Domain.Shared;
 using MikesRecipes.Framework;
 using MikesRecipes.Framework.Interfaces;
-using MikesRecipes.Services.Contracts;
-using MikesRecipes.Services.Contracts.Common;
+using MikesRecipes.Application.Contracts;
+using MikesRecipes.Application.Contracts.Common;
+using MikesRecipes.Application;
+using MikesRecipes.Application.Contracts.Requests;
+using MikesRecipes.Application.Contracts.Responses;
 using MikesRecipes.Services.Implementation.Extensions;
-using System.Data;
 
 namespace MikesRecipes.Services.Implementation;
 
@@ -75,7 +77,7 @@ public class RecipeService : BaseApplicationService, IRecipeService
             return Response.Failure<RecipesPage>(validationResult.Errors);
         }
 
-        var includedProductsIds = filter.ProductIds.ToList();
+        var includedProductsIds = filter.IncludedProducts.ToList();
         int includedProductsCount = includedProductsIds.Count;
 
         string productsIdsRaw = string.Join(",", includedProductsIds.Select(e => $"'{e.Value}'"));
