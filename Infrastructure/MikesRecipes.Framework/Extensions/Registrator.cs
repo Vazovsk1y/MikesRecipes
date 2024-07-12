@@ -5,12 +5,13 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using MikesRecipes.Framework.Interfaces;
 using System.Reflection;
+using MikesRecipes.Framework.Infrastructure;
 
 namespace MikesRecipes.Framework.Extensions;
 
 public static class Registrator
 {
-    public static IServiceCollection AddFramework(this IServiceCollection services, IConfiguration configuration)
+    public static void AddFramework(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddTransient<IClock, Clock>();
         services.AddScoped<ICurrentUserProvider, CurrentUserProvider>();
@@ -37,8 +38,5 @@ public static class Registrator
                 Password = emailOptions.Smtp.Password,
                 User = emailOptions.Smtp.Username,
             });
-
-
-        return services;
     }
 }

@@ -8,19 +8,13 @@ using MikesRecipes.Framework.Interfaces;
 
 namespace MikesRecipes.Framework;
 
-public class EmailSender : BaseService, IEmailSender
+public class EmailSender(
+    IClock clock,
+    ILogger<BaseService> logger,
+    IServiceScopeFactory serviceScopeFactory,
+    IFluentEmail fluentEmail)
+    : BaseService(clock, logger, serviceScopeFactory), IEmailSender
 {
-    private readonly IFluentEmail _fluentEmail;
-
-    public EmailSender(
-        IClock clock,
-        ILogger<BaseService> logger,
-        IServiceScopeFactory serviceScopeFactory,
-        IFluentEmail fluentEmail) : base(clock, logger, serviceScopeFactory)
-    {
-        _fluentEmail = fluentEmail;
-    }
-
     public async Task<Response> SendEmailAsync(EmailDTO emailDTO, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -31,7 +25,7 @@ public class EmailSender : BaseService, IEmailSender
             return Response.Failure(validationResult.Errors);
         }
 
-        var sendResponse = await _fluentEmail
+        var sendResponse = await fluentEmail
             .To(emailDTO.To, emailDTO.ToName)
             .Subject(emailDTO.Subject)
             .Body(emailDTO.Body, emailDTO.IsHtml)
@@ -40,13 +34,11 @@ public class EmailSender : BaseService, IEmailSender
 
         if (sendResponse.Successful)
         {
-            _logger.LogInformation("Email with purpose '{emailPurpose}' was successfully sent to '{receiver}'.", emailDTO.Purpose, emailDTO.To);
+            _logger.LogInformation("Email with purpose '{emailPurpose}' was successfully sent to '{emailReceiver}'.", emailDTO.Purpose, emailDTO.To);
             return Response.Success();
         }
-        else
-        {
-            _logger.LogError("Email with purpose '{emailPurpose}' was not sent to '{receiver}'.\nErrors:\n{errorMessages}", emailDTO.Purpose, emailDTO.To, sendResponse.ErrorMessages);
-            return Response.Failure(Errors.EmailNotSent);
-        }
+
+        _logger.LogError("Email with purpose '{emailPurpose}' was not sent to '{emailReceiver}'.\nErrors:\n{@errorMessages}", emailDTO.Purpose, emailDTO.To, sendResponse.ErrorMessages);
+        return Response.Failure(Errors.EmailNotSent);
     }
 }

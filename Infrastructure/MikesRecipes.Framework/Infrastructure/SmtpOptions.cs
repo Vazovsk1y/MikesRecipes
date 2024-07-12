@@ -1,22 +1,6 @@
-﻿using Microsoft.Extensions.Options;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 
-namespace MikesRecipes.Framework;
-
-public class EmailSenderOptions
-{
-    public const string SectionName = "EmailSender";
-
-    [Required]
-    [EmailAddress]
-    public required string DefaultFromEmail { get; init; }
-
-    public string? DefaultFromName { get; init; }
-
-    [Required]
-    [ValidateObjectMembers]
-    public required SmtpOptions Smtp { get; init; }
-}
+namespace MikesRecipes.Framework.Infrastructure;
 
 public class SmtpOptions
 {
