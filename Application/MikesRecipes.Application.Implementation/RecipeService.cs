@@ -8,7 +8,6 @@ using MikesRecipes.Domain.Shared;
 using MikesRecipes.Framework;
 using MikesRecipes.Framework.Interfaces;
 using MikesRecipes.Application.Contracts.Common;
-using MikesRecipes.Application;
 using MikesRecipes.Application.Contracts.Requests;
 using MikesRecipes.Application.Contracts.Responses;
 using MikesRecipes.Application.Implementation.Extensions;

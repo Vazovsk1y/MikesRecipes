@@ -1,5 +1,4 @@
-﻿using MikesRecipes.Application.Contracts;
-using MikesRecipes.Application.Contracts.Common;
+﻿using MikesRecipes.Application.Contracts.Common;
 using MikesRecipes.Application.Contracts.Requests;
 using MikesRecipes.Application.Contracts.Responses;
 using MikesRecipes.Domain.Shared;

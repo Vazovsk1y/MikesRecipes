@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 
-namespace MikesRecipes.WebApi;
+namespace MikesRecipes.WebApi.Infrastructure;
 
 public class ExceptionsHandler(ILogger<ExceptionsHandler> logger) : IExceptionHandler
 {

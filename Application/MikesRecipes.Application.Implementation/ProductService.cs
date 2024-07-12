@@ -1,7 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using MikesRecipes.Application;
 using MikesRecipes.Auth;
 using MikesRecipes.DAL;
 using MikesRecipes.Domain.Shared;

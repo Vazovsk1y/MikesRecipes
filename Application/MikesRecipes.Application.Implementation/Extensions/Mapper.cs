@@ -1,5 +1,4 @@
 ﻿using MikesRecipes.Domain.Models;
-using MikesRecipes.Application.Contracts;
 using MikesRecipes.Application.Contracts.Responses;
 
 namespace MikesRecipes.Application.Implementation.Extensions;

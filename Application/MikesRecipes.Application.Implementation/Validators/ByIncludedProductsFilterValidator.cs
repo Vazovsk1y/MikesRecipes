@@ -1,5 +1,4 @@
 ﻿using FluentValidation;
-using MikesRecipes.Application.Contracts;
 using MikesRecipes.Application.Contracts.Requests;
 
 namespace MikesRecipes.Application.Implementation.Validators;

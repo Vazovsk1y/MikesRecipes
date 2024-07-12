@@ -3,8 +3,8 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Models;
-using MikesRecipes.WebApi.Constants;
-using MikesRecipes.WebApi.Filters;
+using MikesRecipes.WebApi.Infrastructure;
+using MikesRecipes.WebApi.Infrastructure.Filters;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace MikesRecipes.WebApi.Extensions;
@@ -14,7 +14,7 @@ public static class Registrator
     private static readonly string SwaggerAuthDescription =
         $"JWT Authorization header using the {JwtBearerDefaults.AuthenticationScheme} scheme. \r\n\r\n Enter '{JwtBearerDefaults.AuthenticationScheme}' [space] [your token value].";
 
-    public static IServiceCollection AddWebApi(this IServiceCollection services)
+    public static void AddWebApi(this IServiceCollection services)
     {
         services.AddControllers();
         services.Configure<RouteOptions>(options => options.LowercaseUrls = true);
@@ -26,7 +26,7 @@ public static class Registrator
 
         services.AddApiVersioning(e =>
         {
-            e.DefaultApiVersion = new ApiVersion(ApiVersions.V1Dot0);
+            e.DefaultApiVersion = new ApiVersion(Constants.WebApi.Version);
             e.AssumeDefaultVersionWhenUnspecified = true;
             e.ReportApiVersions = true;
             e.ApiVersionReader = new UrlSegmentApiVersionReader();
@@ -40,15 +40,13 @@ public static class Registrator
 
         services.AddCors();
         services.AddSwaggerWithJwtAndVersioning();
-
-        return services;
     }
 
-    private static IServiceCollection AddSwaggerWithJwtAndVersioning(this IServiceCollection collection)
+    private static void AddSwaggerWithJwtAndVersioning(this IServiceCollection collection)
     {
         collection.AddTransient<IConfigureOptions<SwaggerGenOptions>, ConfigureSwaggerOptions>();
 
-        return collection.AddSwaggerGen(swagger =>
+        collection.AddSwaggerGen(swagger =>
         {
             swagger.OperationFilter<SwaggerDefaultValuesFilter>();
 
