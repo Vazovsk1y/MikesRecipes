@@ -2,13 +2,13 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.WebUtilities;
-using MikesRecipes.Auth;
 using MikesRecipes.WebApi.Extensions;
 using MikesRecipes.WebApi.ViewModels;
 using System.ComponentModel.DataAnnotations;
 using System.Text;
 using MikesRecipes.Auth.Contracts.Requests;
 using MikesRecipes.WebApi.Infrastructure.Filters;
+using IAuthenticationService = MikesRecipes.Auth.IAuthenticationService;
 
 namespace MikesRecipes.WebApi.Controllers;
 

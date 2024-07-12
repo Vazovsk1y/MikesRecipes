@@ -12,10 +12,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\MikesRecipes.Application\MikesRecipes.Application.csproj" />
-    <ProjectReference Include="..\..\Infrastructure\MikesRecipes.Auth\MikesRecipes.Auth.csproj" />
-    <ProjectReference Include="..\..\Infrastructure\MikesRecipes.DAL\MikesRecipes.DAL.csproj" />
-    <ProjectReference Include="..\..\Infrastructure\MikesRecipes.Framework\MikesRecipes.Framework.csproj" />
+    <ProjectReference Include="..\..\Application\MikesRecipes.Application\MikesRecipes.Application.csproj" />
+    <ProjectReference Include="..\..\Application\MikesRecipes.Auth\MikesRecipes.Auth.csproj" />
+    <ProjectReference Include="..\MikesRecipes.DAL\MikesRecipes.DAL.csproj" />
+    <ProjectReference Include="..\MikesRecipes.Framework\MikesRecipes.Framework.csproj" />
   </ItemGroup>
 
 </Project>
