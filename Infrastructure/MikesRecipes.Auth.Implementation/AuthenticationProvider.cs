@@ -14,6 +14,8 @@ using MikesRecipes.Domain.Shared;
 using MikesRecipes.Framework;
 using MikesRecipes.Framework.Interfaces;
 using System.ComponentModel.DataAnnotations;
+using MikesRecipes.Auth.Contracts.Requests;
+using MikesRecipes.Auth.Contracts.Responses;
 
 namespace MikesRecipes.Auth.Implementation;
 

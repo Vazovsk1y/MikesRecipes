@@ -1,4 +1,4 @@
-﻿namespace MikesRecipes.Auth.Contracts;
+﻿namespace MikesRecipes.Auth.Contracts.Responses;
 
 public record UserProfileDTO(
     string Email, 

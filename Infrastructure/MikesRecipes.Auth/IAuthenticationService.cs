@@ -1,4 +1,6 @@
 ﻿using MikesRecipes.Auth.Contracts;
+using MikesRecipes.Auth.Contracts.Requests;
+using MikesRecipes.Auth.Contracts.Responses;
 using MikesRecipes.Domain.Shared;
 
 namespace MikesRecipes.Auth;

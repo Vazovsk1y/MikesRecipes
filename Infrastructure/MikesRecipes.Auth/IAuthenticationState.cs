@@ -5,5 +5,8 @@ namespace MikesRecipes.Auth;
 
 public interface IAuthenticationState
 {
-	Task<Response<User>> IsAuthenticatedAsync(bool validateConfirmedEmail = true, bool validateSecurityStamp = true, CancellationToken cancellationToken = default);
+	Task<Response<User>> IsAuthenticatedAsync(
+		bool validateConfirmedEmail = true,
+		bool validateSecurityStamp = true,
+		CancellationToken cancellationToken = default);
 }

@@ -1,3 +1,3 @@
-﻿namespace MikesRecipes.Auth.Contracts;
+﻿namespace MikesRecipes.Auth.Contracts.Responses;
 
 public record TokensDTO(string AccessToken, string RefreshToken);

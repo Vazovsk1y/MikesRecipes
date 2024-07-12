@@ -1,4 +1,5 @@
 ﻿using MikesRecipes.Auth.Contracts;
+using MikesRecipes.Auth.Contracts.Responses;
 using MikesRecipes.Domain.Models;
 
 namespace MikesRecipes.Auth.Implementation.Extensions;

@@ -10,6 +10,7 @@ using MikesRecipes.WebApi.Filters;
 using MikesRecipes.WebApi.ViewModels;
 using System.ComponentModel.DataAnnotations;
 using System.Text;
+using MikesRecipes.Auth.Contracts.Requests;
 
 namespace MikesRecipes.WebApi.Controllers;
 

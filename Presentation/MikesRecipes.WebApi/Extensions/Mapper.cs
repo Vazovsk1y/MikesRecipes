@@ -5,6 +5,8 @@ using MikesRecipes.WebApi.ViewModels;
 using System.Text;
 using MikesRecipes.Application.Contracts;
 using MikesRecipes.Application.Contracts.Requests;
+using MikesRecipes.Auth.Contracts.Requests;
+using MikesRecipes.Auth.Contracts.Responses;
 
 namespace MikesRecipes.WebApi.Extensions;
 
