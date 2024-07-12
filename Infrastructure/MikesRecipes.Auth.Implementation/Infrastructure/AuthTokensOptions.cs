@@ -1,7 +1,7 @@
-﻿using Microsoft.Extensions.Options;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
+using Microsoft.Extensions.Options;
 
-namespace MikesRecipes.Auth.Implementation.Options;
+namespace MikesRecipes.Auth.Implementation.Infrastructure;
 
 public record AuthTokensOptions
 {

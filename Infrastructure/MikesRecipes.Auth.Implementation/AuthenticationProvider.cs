@@ -6,7 +6,6 @@ using Microsoft.Extensions.Options;
 using MikesRecipes.Auth.Contracts;
 using MikesRecipes.Auth.Implementation.Constants;
 using MikesRecipes.Auth.Implementation.Extensions;
-using MikesRecipes.Auth.Implementation.Options;
 using MikesRecipes.DAL;
 using MikesRecipes.Domain.Constants;
 using MikesRecipes.Domain.Models;
@@ -16,6 +15,7 @@ using MikesRecipes.Framework.Interfaces;
 using System.ComponentModel.DataAnnotations;
 using MikesRecipes.Auth.Contracts.Requests;
 using MikesRecipes.Auth.Contracts.Responses;
+using MikesRecipes.Auth.Implementation.Infrastructure;
 
 namespace MikesRecipes.Auth.Implementation;
 
@@ -46,22 +46,22 @@ public class AuthenticationProvider :
         _signInOptions = _authOptions.SignIn;
     }
 
-    public async Task<Response<User>> IsAuthenticatedAsync(bool checkEmail = true, bool checkSecurityStamp = true, CancellationToken cancellationToken = default)
+    public async Task<Response<User>> IsAuthenticatedAsync(bool validateConfirmedEmail = true, bool validateSecurityStamp = true, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
         var currentUser = _currentUserProvider.GetCurrentUser();
-        if (currentUser is null || currentUser.Identity?.IsAuthenticated is false)
+        if (currentUser is null || currentUser.Identity is null or { IsAuthenticated: false })
         {
             return Response.Failure<User>(Errors.Unauthorized);
         }
 
-        var user = checkSecurityStamp ? 
+        var user = validateSecurityStamp ? 
             await _signInManager.ValidateSecurityStampAsync(currentUser)
             :
             await _userManager.GetUserAsync(currentUser);
 
-        if (user is null || (checkEmail && _signInOptions.RequireConfirmedEmail && !await _userManager.IsEmailConfirmedAsync(user)))
+        if (user is null || (validateConfirmedEmail && _signInOptions.RequireConfirmedEmail && !await _userManager.IsEmailConfirmedAsync(user)))
         {
             return Response.Failure<User>(Errors.Unauthorized);
         }
@@ -102,7 +102,7 @@ public class AuthenticationProvider :
             return isAuthenticatedResponse;
         }
 
-        User user = isAuthenticatedResponse.Value;
+        var user = isAuthenticatedResponse.Value;
         var refreshToken = await _dbContext
             .UserTokens
             .SingleOrDefaultAsync(e => e.UserId == user.Id
@@ -134,19 +134,19 @@ public class AuthenticationProvider :
             UserName = userRegisterDTO.Username.Trim(),
         };
 
-        using var transaction = _dbContext.Database.BeginTransaction();
+        await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
         try
         {
             var userCreationResult = await _userManager.CreateAsync(user, userRegisterDTO.Password);
             if (!userCreationResult.Succeeded)
             {
-                return Response.Failure(userCreationResult.Errors.ToErrors());
+                return Response.Failure(userCreationResult.Errors.ToSharedErrors());
             }
 
             var addingToRoleResult = await _userManager.AddToRoleAsync(user, DefaultRoles.User);
             if (!addingToRoleResult.Succeeded)
             {
-                return Response.Failure(addingToRoleResult.Errors.ToErrors());
+                return Response.Failure(addingToRoleResult.Errors.ToSharedErrors());
             }
 
             if (_signInOptions.RequireConfirmedEmail)
@@ -158,11 +158,11 @@ public class AuthenticationProvider :
                 }
             }
 
-            transaction.Commit();
+            await transaction.CommitAsync(cancellationToken);
         }
         catch (Exception ex)
         {
-            transaction.Rollback();
+            await transaction.RollbackAsync(cancellationToken);
             _logger.LogError(ex, "Something went wrong during user registration.");
             return Response.Failure(Errors.RegistrationFailed);
         }
@@ -180,44 +180,14 @@ public class AuthenticationProvider :
             return Response.Failure<TokensDTO>(canLoginResult.Errors);
         }
 
-        User user = canLoginResult.Value;
-        string accessToken = await _userManager.GenerateUserTokenAsync(user, AccessTokenProvider.LoginProvider, AccessTokenProvider.Name);
-        string refreshTokenValue = await _userManager.GenerateUserTokenAsync(user, RefreshTokenProvider.LoginProvider, RefreshTokenProvider.Name);
+        var user = canLoginResult.Value;
+        var accessToken = await _userManager.GenerateUserTokenAsync(user, AccessTokenProvider.LoginProvider, AccessTokenProvider.Name);
+        var refreshTokenValue = await _userManager.GenerateUserTokenAsync(user, RefreshTokenProvider.LoginProvider, RefreshTokenProvider.Name);
 
         await ModifyOrCreateRefreshToken(user, refreshTokenValue, cancellationToken);
         await _userManager.ResetAccessFailedCountAsync(user);
         await _dbContext.SaveChangesAsync(cancellationToken);
         return new TokensDTO(accessToken, refreshTokenValue);
-    }
-
-    private async Task ModifyOrCreateRefreshToken(User user, string refreshTokenValue, CancellationToken cancellationToken)
-    {
-        var refreshToken = await _dbContext
-                    .UserTokens
-                    .SingleOrDefaultAsync(e => e.UserId == user.Id
-                    && e.LoginProvider == RefreshTokenProvider.LoginProvider
-                    && e.Name == RefreshTokenProvider.Name, cancellationToken);
-
-        var currentDate = _clock.GetDateTimeOffsetUtcNow();
-
-        if (refreshToken is null)
-        {
-            refreshToken = new UserToken
-            {
-                ExpiryDate = currentDate.Add(_authOptions.Tokens.Refresh.TokenLifetime),
-                Value = refreshTokenValue,
-                UserId = user.Id,
-                LoginProvider = RefreshTokenProvider.LoginProvider,
-                Name = RefreshTokenProvider.Name
-            };
-
-            _dbContext.UserTokens.Add(refreshToken);
-        }
-        else
-        {
-            refreshToken.ExpiryDate = currentDate.Add(_authOptions.Tokens.Refresh.TokenLifetime);
-            refreshToken.Value = refreshTokenValue;
-        }
     }
 
     public async Task<Response<TokensDTO>> RefreshTokensAsync(string refreshToken, CancellationToken cancellationToken = default)
@@ -230,8 +200,8 @@ public class AuthenticationProvider :
             return Response.Failure<TokensDTO>(isAuthenticatedResponse.Errors);
         }
 
-        User user = isAuthenticatedResponse.Value;
-        bool refreshTokenVerificationResult = await _userManager.VerifyUserTokenAsync(
+        var user = isAuthenticatedResponse.Value;
+        var refreshTokenVerificationResult = await _userManager.VerifyUserTokenAsync(
             user, 
             RefreshTokenProvider.LoginProvider,
             RefreshTokenProvider.Name,
@@ -249,8 +219,8 @@ public class AuthenticationProvider :
            && e.LoginProvider == RefreshTokenProvider.LoginProvider
            && e.Name == RefreshTokenProvider.Name, cancellationToken);
 
-        string newRefreshTokenValue = await _userManager.GenerateUserTokenAsync(user, RefreshTokenProvider.LoginProvider, RefreshTokenProvider.Name);
-        string newAccessToken = await _userManager.GenerateUserTokenAsync(user, AccessTokenProvider.LoginProvider, AccessTokenProvider.Name);
+        var newRefreshTokenValue = await _userManager.GenerateUserTokenAsync(user, RefreshTokenProvider.LoginProvider, RefreshTokenProvider.Name);
+        var newAccessToken = await _userManager.GenerateUserTokenAsync(user, AccessTokenProvider.LoginProvider, AccessTokenProvider.Name);
 
         var currentDate = _clock.GetDateTimeOffsetUtcNow();
         existingRefreshToken.ExpiryDate = currentDate.Add(_authOptions.Tokens.Refresh.TokenLifetime);
@@ -287,7 +257,7 @@ public class AuthenticationProvider :
         }
 
         var result = await _userManager.ConfirmEmailAsync(user, emailConfirmationDTO.DecodedToken);
-        return result.Succeeded ? Response.Success() : Response.Failure(result.Errors.ToErrors());
+        return result.Succeeded ? Response.Success() : Response.Failure(result.Errors.ToSharedErrors());
     }
 
     public async Task<Response> ConfirmEmailChangeAsync(EmailChangeConfirmationDTO emailChangeConfirmationDTO, CancellationToken cancellationToken = default)
@@ -318,7 +288,7 @@ public class AuthenticationProvider :
         }
 
         var result = await _userManager.ChangeEmailAsync(user, newEmail, emailChangeConfirmationDTO.DecodedToken);
-        return result.Succeeded ? Response.Success() : Response.Failure(result.Errors.ToErrors());
+        return result.Succeeded ? Response.Success() : Response.Failure(result.Errors.ToSharedErrors());
     }
 
     private async Task<Response<User>> CanLogin(UserLoginDTO userLoginDTO)
@@ -362,5 +332,35 @@ public class AuthenticationProvider :
         }
 
         return user;
+    }
+    
+    private async Task ModifyOrCreateRefreshToken(User user, string refreshTokenValue, CancellationToken cancellationToken)
+    {
+        var refreshToken = await _dbContext
+            .UserTokens
+            .SingleOrDefaultAsync(e => e.UserId == user.Id
+                                       && e.LoginProvider == RefreshTokenProvider.LoginProvider
+                                       && e.Name == RefreshTokenProvider.Name, cancellationToken);
+
+        var currentDate = _clock.GetDateTimeOffsetUtcNow();
+
+        if (refreshToken is null)
+        {
+            refreshToken = new UserToken
+            {
+                ExpiryDate = currentDate.Add(_authOptions.Tokens.Refresh.TokenLifetime),
+                Value = refreshTokenValue,
+                UserId = user.Id,
+                LoginProvider = RefreshTokenProvider.LoginProvider,
+                Name = RefreshTokenProvider.Name
+            };
+
+            _dbContext.UserTokens.Add(refreshToken);
+        }
+        else
+        {
+            refreshToken.ExpiryDate = currentDate.Add(_authOptions.Tokens.Refresh.TokenLifetime);
+            refreshToken.Value = refreshTokenValue;
+        }
     }
 }

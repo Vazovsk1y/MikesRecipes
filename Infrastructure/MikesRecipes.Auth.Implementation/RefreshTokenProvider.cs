@@ -10,22 +10,16 @@ using System.Security.Cryptography;
 
 namespace MikesRecipes.Auth.Implementation;
 
-public class RefreshTokenProvider : IUserTwoFactorTokenProvider<User>
+public class RefreshTokenProvider(
+    ILogger<BaseService> logger,
+    IServiceScopeFactory serviceScopeFactory)
+    : IUserTwoFactorTokenProvider<User>
 {
     public const string Name = "Refresh_token";
 
     public const string LoginProvider = "MikesRecipes";
 
-    private readonly ILogger<BaseService> _logger;
-    private readonly IServiceScopeFactory _serviceScopeFactory;
-
-    public RefreshTokenProvider(
-        ILogger<BaseService> logger, 
-        IServiceScopeFactory serviceScopeFactory) 
-    {
-        _logger = logger;
-        _serviceScopeFactory = serviceScopeFactory;
-    }
+    private readonly ILogger<BaseService> _logger = logger;
 
     public Task<bool> CanGenerateTwoFactorTokenAsync(UserManager<User> manager, User user)
     {
@@ -58,7 +52,7 @@ public class RefreshTokenProvider : IUserTwoFactorTokenProvider<User>
             return false;
         }
 
-        using var scope = _serviceScopeFactory.CreateScope();
+        using var scope = serviceScopeFactory.CreateScope();
         var clock = scope.ServiceProvider.GetRequiredService<IClock>();
         var dbContext = scope.ServiceProvider.GetRequiredService<MikesRecipesDbContext>();
 

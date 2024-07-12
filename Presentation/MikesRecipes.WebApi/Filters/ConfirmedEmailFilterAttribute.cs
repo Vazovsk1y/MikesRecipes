@@ -11,7 +11,8 @@ public class ConfirmedEmailFilterAttribute : Attribute, IAsyncAuthorizationFilte
     public async Task OnAuthorizationAsync(AuthorizationFilterContext context)
     {
         var httpContext = context.HttpContext;
-        if (httpContext.User.Identity?.IsAuthenticated is false)
+        
+        if (httpContext.User.Identity is null or { IsAuthenticated: false })
         {
             return;
         }

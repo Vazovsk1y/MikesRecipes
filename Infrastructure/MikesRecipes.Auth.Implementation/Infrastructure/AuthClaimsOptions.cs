@@ -1,9 +1,9 @@
-﻿using MikesRecipes.Domain.Models;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using MikesRecipes.Domain.Models;
 
-namespace MikesRecipes.Auth.Implementation.Options;
+namespace MikesRecipes.Auth.Implementation.Infrastructure;
 
 public record AuthClaimsOptions
 {

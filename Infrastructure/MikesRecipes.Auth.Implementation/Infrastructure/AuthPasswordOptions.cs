@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace MikesRecipes.Auth.Implementation.Options;
+namespace MikesRecipes.Auth.Implementation.Infrastructure;
 
 public record AuthPasswordOptions
 {
