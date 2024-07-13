@@ -2,7 +2,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using MikesRecipes.Auth;
-using MikesRecipes.DAL;
+using MikesRecipes.DAL.PostgreSQL;
 using MikesRecipes.Domain.Shared;
 using MikesRecipes.Framework;
 using MikesRecipes.Framework.Interfaces;
@@ -25,7 +25,7 @@ internal class ProductService(
 	private readonly IAuthenticationState _authenticationState = authenticationState;
 	private readonly MikesRecipesDbContext _dbContext = dbContext;
 
-	public async Task<Response<IReadOnlyCollection<ProductDTO>>> GetByTitleAsync(ByTitleFilter filter, CancellationToken cancellationToken = default)
+	public async Task<Response<IReadOnlyCollection<ProductDTO>>> GetByTitleFilterAsync(ByTitleFilter filter, CancellationToken cancellationToken = default)
 	{
 		cancellationToken.ThrowIfCancellationRequested();
 
@@ -43,7 +43,7 @@ internal class ProductService(
 
 		var products = await _dbContext
 			.Products
-			.Where(pr => pr.Title.Contains(filter.Value))
+			.Where(pr => EF.Functions.ILike(pr.Title, $"%{filter.Value}%"))
 			.Select(e => e.ToDTO())
 			.ToListAsync(cancellationToken);
 

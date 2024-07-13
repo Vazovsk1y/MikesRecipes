@@ -21,9 +21,10 @@ public static class Registrator
 
         services.AddOptions<EmailSenderOptions>()
             .BindConfiguration(EmailSenderOptions.SectionName)
-        .ValidateDataAnnotations()
+            .ValidateDataAnnotations()
             .ValidateOnStart();
 
+        // TODO: How to obtain email sender options in Production mode?
         var emailOptions = configuration.GetSection(EmailSenderOptions.SectionName).Get<EmailSenderOptions>()!;
 
         services.AddFluentEmail(emailOptions.DefaultFromEmail, emailOptions.DefaultFromName)

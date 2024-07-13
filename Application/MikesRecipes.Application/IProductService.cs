@@ -6,5 +6,5 @@ namespace MikesRecipes.Application;
 
 public interface IProductService
 {
-	Task<Response<IReadOnlyCollection<ProductDTO>>> GetByTitleAsync(ByTitleFilter filter, CancellationToken cancellationToken = default);
+	Task<Response<IReadOnlyCollection<ProductDTO>>> GetByTitleFilterAsync(ByTitleFilter filter, CancellationToken cancellationToken = default);
 }

@@ -20,7 +20,7 @@ public class AuthController(IAuthenticationService authenticationService) : Base
     {
         var dto = registerModel.ToDTO();
         var result = await authenticationService.RegisterAsync(dto, cancellationToken);
-        return result.IsSuccess ? Ok() : BadRequest(result.Errors);
+        return result.IsSuccess ? Ok("Email confirmation link was sent.") : BadRequest(result.Errors);
     }
 
     [HttpPost("sign-in")]

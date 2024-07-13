@@ -2,7 +2,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using MikesRecipes.Auth;
-using MikesRecipes.DAL;
+using MikesRecipes.DAL.PostgreSQL;
 using MikesRecipes.Domain.Models;
 using MikesRecipes.Domain.Shared;
 using MikesRecipes.Framework;
@@ -81,17 +81,16 @@ public class RecipeService(
 
         var productsIdsRow = string.Join(",", includedProductsIds.Select(e => $"'{e.Value}'"));
         
-        // TODO: Rewrite it for PostgreSQL.
         var sql = $"""
                    
-                                SELECT [r].[{nameof(Recipe.Id)}], [r].[{nameof(Recipe.Title)}], [r].[{nameof(Recipe.Url)}], [r].[{nameof(Recipe.IngredientsCount)}]
-                                FROM [{nameof(_dbContext.Products)}] AS [p]
-                                INNER JOIN [{nameof(_dbContext.Ingredients)}] AS [i] ON [p].[{nameof(Product.Id)}] = [i].[{nameof(Ingredient.ProductId)}]
-                                INNER JOIN [{nameof(_dbContext.Recipes)}] AS [r] ON [i].[{nameof(Ingredient.RecipeId)}] = [r].[{nameof(Recipe.Id)}]
-                                WHERE [p].[{nameof(Product.Id)}] IN ({productsIdsRow})
-                                GROUP BY [r].[{nameof(Recipe.Id)}], [r].[{nameof(Recipe.Title)}], [r].[{nameof(Recipe.Url)}], [r].[{nameof(Recipe.IngredientsCount)}]
-                                HAVING COUNT(DISTINCT ([i].[{nameof(Ingredient.ProductId)}])) = {includedProductsCount} 
-                                              AND [r].[{nameof(Recipe.IngredientsCount)}] <= {filter.OtherProductsCount + includedProductsCount}
+                       SELECT r."{nameof(Recipe.Id)}", r."{nameof(Recipe.Title)}", r."{nameof(Recipe.Url)}", r."{nameof(Recipe.IngredientsCount)}"
+                       FROM "{nameof(_dbContext.Products)}" AS p
+                       INNER JOIN "{nameof(_dbContext.Ingredients)}" AS i ON p."{nameof(Product.Id)}" = i."{nameof(Ingredient.ProductId)}"
+                       INNER JOIN "{nameof(_dbContext.Recipes)}" AS r ON i."{nameof(Ingredient.RecipeId)}" = r."{nameof(Recipe.Id)}"
+                       WHERE p."{nameof(Product.Id)}" IN ({productsIdsRow})
+                       GROUP BY r."{nameof(Recipe.Id)}", r."{nameof(Recipe.Title)}", r."{nameof(Recipe.Url)}", r."{nameof(Recipe.IngredientsCount)}"
+                       HAVING COUNT(DISTINCT i."{nameof(Ingredient.ProductId)}") = {includedProductsCount}
+                           AND r."{nameof(Recipe.IngredientsCount)}" <= {filter.OtherProductsCount + includedProductsCount}
                    """;
 
         var totalRecipesCount = _dbContext.Recipes.FromSqlRaw(sql).Count();

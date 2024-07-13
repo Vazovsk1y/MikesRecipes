@@ -13,7 +13,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MikesRecipes.Domain", "Core
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MikesRecipes.Application", "Application\MikesRecipes.Application\MikesRecipes.Application.csproj", "{0F9D9746-7929-4D9D-BFBA-1CF906929460}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MikesRecipes.DAL", "Infrastructure\MikesRecipes.DAL\MikesRecipes.DAL.csproj", "{D895F10F-82B1-4915-AE55-889E89122EEF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MikesRecipes.DAL.PostgreSQL", "Infrastructure\MikesRecipes.DAL.PostgreSQL\MikesRecipes.DAL.PostgreSQL.csproj", "{D895F10F-82B1-4915-AE55-889E89122EEF}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Presentation", "Presentation", "{834F4494-4F77-49D3-8086-CB73E5AA9B23}"
 EndProject

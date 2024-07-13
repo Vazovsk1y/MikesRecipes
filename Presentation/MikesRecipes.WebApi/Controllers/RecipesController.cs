@@ -17,14 +17,14 @@ namespace MikesRecipes.WebApi.Controllers;
 public class RecipesController(IRecipeService recipeService) : BaseController
 {
     [HttpGet]
-    public async Task<IActionResult> GetRecipesPage([Range(1, int.MaxValue)] [FromQuery] int pageSize, [Range(1, int.MaxValue)] [FromQuery] int pageIndex, CancellationToken cancellationToken)
+    public async Task<IActionResult> GetRecipesPage([Range(1, int.MaxValue)] [FromQuery] int pageIndex, [Range(1, int.MaxValue)] [FromQuery] int pageSize, CancellationToken cancellationToken)
     {
         var result = await recipeService.GetAsync(new PagingOptions(pageIndex, pageSize), cancellationToken);
         return result.IsSuccess ? Ok(result.Value) : BadRequest(result.Errors);
     }
 
     [HttpPost]
-    public async Task<IActionResult> GetRecipesPageByIncludedProducts([FromBody]ByIncludedProductsFilterModel filterModel, [Range(1, int.MaxValue)][FromQuery]int pageSize, [Range(1, int.MaxValue)][FromQuery]int pageIndex, CancellationToken cancellationToken)
+    public async Task<IActionResult> GetRecipesPageByIncludedProducts([FromBody]ByIncludedProductsFilterModel filterModel, [Range(1, int.MaxValue)][FromQuery]int pageIndex, [Range(1, int.MaxValue)][FromQuery]int pageSize,  CancellationToken cancellationToken)
     {
         var dto = filterModel.ToDTO();
         var result = await recipeService.GetByIncludedProductsAsync(dto, new PagingOptions(pageIndex, pageSize), cancellationToken);

@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using MikesRecipes.Auth;
-using MikesRecipes.DAL;
+using MikesRecipes.DAL.PostgreSQL;
 using MikesRecipes.Framework;
 using MikesRecipes.Framework.Interfaces;
 

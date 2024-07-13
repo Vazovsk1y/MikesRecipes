@@ -38,7 +38,6 @@ public static class Registrator
             e.SubstituteApiVersionInUrl = true;
         });
 
-        services.AddCors();
         services.AddSwaggerWithJwtAndVersioning();
     }
 

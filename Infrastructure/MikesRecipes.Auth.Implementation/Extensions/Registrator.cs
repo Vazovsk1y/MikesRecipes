@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using MikesRecipes.DAL;
+using MikesRecipes.DAL.PostgreSQL;
 using MikesRecipes.Domain.Models;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.AspNetCore.Identity;
@@ -32,6 +32,7 @@ public static class Registrator
             .ValidateDataAnnotations()
             .ValidateOnStart();
 
+        // TODO: How to obtain auth options in production mode?
         var authOptions = configuration.GetSection(AuthOptions.SectionName).Get<AuthOptions>()!;
         var identityOptions = authOptions.ToIdentityOptions();
 

@@ -37,7 +37,7 @@ public class ProfilesController(IUserProfileService userProfileService) : BaseCo
                                          <head>
                                              <meta charset="UTF-8">
                                              <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                                             <title>Сброс пароля</title>
+                                             <title>Reset password</title>
                                              <style>
                                                  body {
                                                      font-family: Arial, sans-serif;
@@ -85,25 +85,25 @@ public class ProfilesController(IUserProfileService userProfileService) : BaseCo
                                          </head>
                                          <body>
                                              <div class="password-reset-form">
-                                                 <h2>Сброс пароля</h2>
+                                                 <h2>Reset password</h2>
                                                  <form action="reset-password" method="post">
                                                      <input type="hidden" id="email" name="{{nameof(ResetPasswordModel.Email)}}" value = "{{email}}">
                                                      <input type="hidden" id="token" name="{{nameof(ResetPasswordModel.Token)}}" value = "{{token}}">
                                                      <div class="form-group">
-                                                         <label for="password">Новый пароль:</label>
+                                                         <label for="password">New password:</label>
                                                          <input type="password" id="newPassword" name="{{nameof(ResetPasswordModel.NewPassword)}}" required>
                                                      </div>
                                                      <div class="form-group">
-                                                         <label for="confirmPassword">Подтвердите пароль:</label>
+                                                         <label for="confirmPassword">Confirm password:</label>
                                                          <input type="password" id="confirmPassword" name="{{nameof(ResetPasswordModel.ConfirmPassword)}}" required>
                                                      </div>
-                                                     <button type="submit">Сбросить пароль</button>
+                                                     <button type="submit">Reset</button>
                                                  </form>
                                              </div>
                                          </body>
                                          </html>
-                                         
                                      """;
+        
         return Content(resetPasswordPage, "text/html");
     }
 
@@ -120,9 +120,9 @@ public class ProfilesController(IUserProfileService userProfileService) : BaseCo
         return result.IsSuccess ? Ok() : BadRequest(result.Errors);
     }
 
-    [HttpGet("info")]
+    [HttpGet("me")]
     [Authorize, ValidateSecurityStampFilter, ConfirmedEmailFilter]
-    public async Task<IActionResult> Info(CancellationToken cancellationToken)
+    public async Task<IActionResult> Me(CancellationToken cancellationToken)
     {
         var result = await userProfileService.GetProfileInfoAsync(cancellationToken);
         return result.IsSuccess ? Ok(result.Value) : BadRequest(result.Errors);

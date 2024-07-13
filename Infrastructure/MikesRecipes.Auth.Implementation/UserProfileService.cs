@@ -4,7 +4,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MikesRecipes.Auth.Implementation.Constants;
 using MikesRecipes.Auth.Implementation.Extensions;
-using MikesRecipes.DAL;
+using MikesRecipes.DAL.PostgreSQL;
 using MikesRecipes.Domain.Models;
 using MikesRecipes.Domain.Shared;
 using MikesRecipes.Framework;
@@ -81,7 +81,7 @@ public class UserProfileService : BaseAuthService, IUserProfileService
 
         if (string.IsNullOrWhiteSpace(email) 
             || !EmailAddressAttribute.IsValid(email) 
-            || await _userManager.FindByEmailAsync(email) is not User user)
+            || await _userManager.FindByEmailAsync(email) is not { } user)
         {
             return Response.Failure(Errors.InvalidEmailOrPassword);
         }

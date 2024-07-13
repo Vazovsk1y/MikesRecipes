@@ -15,9 +15,9 @@ namespace MikesRecipes.WebApi.Controllers;
 public class ProductsController(IProductService productService) : BaseController
 {
     [HttpGet]
-    public async Task<IActionResult> GetByTitleSearchTerm([Required][FromQuery] string searchByTitleTerm, CancellationToken cancellationToken)
+    public async Task<IActionResult> GetByTitleSearchTerm([Required][FromQuery] string filterValue, CancellationToken cancellationToken)
     {
-        var result = await productService.GetByTitleAsync(new ByTitleFilter(searchByTitleTerm), cancellationToken);
+        var result = await productService.GetByTitleFilterAsync(new ByTitleFilter(filterValue), cancellationToken);
         return result.IsSuccess ? Ok(result.Value) : BadRequest(result.Errors);
     }
 }

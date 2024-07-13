@@ -5,7 +5,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MikesRecipes.Auth.Implementation.Constants;
 using MikesRecipes.Auth.Implementation.Extensions;
-using MikesRecipes.DAL;
+using MikesRecipes.DAL.PostgreSQL;
 using MikesRecipes.Domain.Constants;
 using MikesRecipes.Domain.Models;
 using MikesRecipes.Domain.Shared;
