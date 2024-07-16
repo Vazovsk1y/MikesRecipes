@@ -4,33 +4,26 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
-using MikesRecipes.Auth.Implementation.Options;
 using MikesRecipes.Domain.Models;
 using MikesRecipes.Framework.Interfaces;
 using System.Security.Claims;
 using System.Text;
+using MikesRecipes.Auth.Implementation.Infrastructure;
 
 namespace MikesRecipes.Auth.Implementation;
 
-public class AccessTokenProvider : IUserTwoFactorTokenProvider<User>
+public class AccessTokenProvider(
+    ILogger<AccessTokenProvider> logger,
+    IServiceScopeFactory serviceScopeFactory,
+    IOptions<AuthOptions> authOptions)
+    : IUserTwoFactorTokenProvider<User>
 {
     public const string Name = "Access_token";
 
     public const string LoginProvider = "Jwt";
 
-    private readonly AuthOptions _authOptions;
-    private readonly ILogger _logger;
-    private readonly IServiceScopeFactory _serviceScopeFactory;
-
-    public AccessTokenProvider(
-        ILogger<AccessTokenProvider> logger,
-        IServiceScopeFactory serviceScopeFactory,
-        IOptions<AuthOptions> authOptions)
-    {
-        _serviceScopeFactory = serviceScopeFactory;
-        _logger = logger;
-        _authOptions = authOptions.Value;
-    }
+    private readonly AuthOptions _authOptions = authOptions.Value;
+    private readonly ILogger _logger = logger;
 
     public Task<bool> CanGenerateTwoFactorTokenAsync(UserManager<User> manager, User user)
     {
@@ -45,7 +38,7 @@ public class AccessTokenProvider : IUserTwoFactorTokenProvider<User>
         ArgumentNullException.ThrowIfNull(manager);
         ArgumentNullException.ThrowIfNull(user);
 
-        using var scope = _serviceScopeFactory.CreateScope();
+        using var scope = serviceScopeFactory.CreateScope();
         var userClaimsPrincipalFactory = scope.ServiceProvider.GetRequiredService<IUserClaimsPrincipalFactory<User>>();
 
         var claimsPrincipal = await userClaimsPrincipalFactory.CreateAsync(user);
@@ -59,7 +52,7 @@ public class AccessTokenProvider : IUserTwoFactorTokenProvider<User>
 
         if (purpose != Name)
         {
-            throw new InvalidOperationException($"Invalid access token purpose.");
+            throw new InvalidOperationException("Invalid access token purpose.");
         }
 
         if (string.IsNullOrWhiteSpace(token))
@@ -79,7 +72,7 @@ public class AccessTokenProvider : IUserTwoFactorTokenProvider<User>
 
     private string GenerateJwtAccessToken(IEnumerable<Claim> claims)
     {
-        using var scope = _serviceScopeFactory.CreateScope();
+        using var scope = serviceScopeFactory.CreateScope();
         var clock = scope.ServiceProvider.GetRequiredService<IClock>();
 
         var currentDate = clock.GetDateTimeUtcNow();
@@ -107,7 +100,7 @@ public class AccessTokenProvider : IUserTwoFactorTokenProvider<User>
     private async Task<ClaimsPrincipal?> GetClaimsPrincipalFromJwtToken(string token)
     {
         var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_authOptions.Tokens.Jwt.SecretKey));
-        var tokenValidationParametrs = new TokenValidationParameters
+        var tokenValidationArgs = new TokenValidationParameters
         {
             ValidateIssuer = true,
             ValidateAudience = true,
@@ -121,12 +114,12 @@ public class AccessTokenProvider : IUserTwoFactorTokenProvider<User>
         try
         {
             var handler = new JsonWebTokenHandler();
-            var validationResult = await handler.ValidateTokenAsync(token, tokenValidationParametrs);
+            var validationResult = await handler.ValidateTokenAsync(token, tokenValidationArgs);
             return validationResult.IsValid ? new ClaimsPrincipal(validationResult.ClaimsIdentity) : null;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Something went wrong when jwt access token validating.");
+            _logger.LogError(ex, "Something went wrong while validating jwt access token.");
             return null;
         }
     }

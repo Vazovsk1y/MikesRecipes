@@ -2,16 +2,17 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using MikesRecipes.Auth.Contracts;
 using MikesRecipes.Auth.Implementation.Constants;
 using MikesRecipes.Auth.Implementation.Extensions;
-using MikesRecipes.Auth.Implementation.Options;
-using MikesRecipes.DAL;
+using MikesRecipes.DAL.PostgreSQL;
 using MikesRecipes.Domain.Models;
 using MikesRecipes.Domain.Shared;
 using MikesRecipes.Framework;
 using MikesRecipes.Framework.Interfaces;
 using System.ComponentModel.DataAnnotations;
+using MikesRecipes.Auth.Contracts.Requests;
+using MikesRecipes.Auth.Contracts.Responses;
+using MikesRecipes.Auth.Implementation.Infrastructure;
 
 namespace MikesRecipes.Auth.Implementation;
 
@@ -68,7 +69,7 @@ public class UserProfileService : BaseAuthService, IUserProfileService
         else
         {
             var changeEmailResult = await _userManager.SetEmailAsync(user, newEmail);
-            response = changeEmailResult.Succeeded ? Response.Success() : Response.Failure(changeEmailResult.Errors.Select(e => new Error($"{Errors.CodeBase}.{e.Code}", e.Description)));
+            response = changeEmailResult.Succeeded ? Response.Success() : Response.Failure(changeEmailResult.Errors.ToSharedErrors());
         }
 
         return response;
@@ -80,7 +81,7 @@ public class UserProfileService : BaseAuthService, IUserProfileService
 
         if (string.IsNullOrWhiteSpace(email) 
             || !EmailAddressAttribute.IsValid(email) 
-            || await _userManager.FindByEmailAsync(email) is not User user)
+            || await _userManager.FindByEmailAsync(email) is not { } user)
         {
             return Response.Failure(Errors.InvalidEmailOrPassword);
         }
@@ -110,12 +111,12 @@ public class UserProfileService : BaseAuthService, IUserProfileService
         {
             case null:
                 return Response.Failure(Errors.InvalidEmailOrPassword);
-            case User when !await _userManager.IsEmailConfirmedAsync(user):
+            case not null when !await _userManager.IsEmailConfirmedAsync(user):
                 return Response.Failure(Errors.ConfirmationRequiredFor(nameof(User.Email)));
             default:
                 {
                     var result = await _userManager.ResetPasswordAsync(user, resetPasswordDTO.DecodedToken, resetPasswordDTO.NewPassword);
-                    return result.Succeeded ? Response.Success() : Response.Failure(result.Errors.ToErrors());
+                    return result.Succeeded ? Response.Success() : Response.Failure(result.Errors.ToSharedErrors());
                 }
         }
     }

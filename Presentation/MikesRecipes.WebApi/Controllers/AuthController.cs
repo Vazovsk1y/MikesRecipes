@@ -2,35 +2,32 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.WebUtilities;
-using MikesRecipes.Auth;
-using MikesRecipes.Auth.Contracts;
-using MikesRecipes.WebApi.Constants;
 using MikesRecipes.WebApi.Extensions;
-using MikesRecipes.WebApi.Filters;
 using MikesRecipes.WebApi.ViewModels;
 using System.ComponentModel.DataAnnotations;
 using System.Text;
+using MikesRecipes.Auth.Contracts.Requests;
+using MikesRecipes.WebApi.Infrastructure.Filters;
+using IAuthenticationService = MikesRecipes.Auth.IAuthenticationService;
 
 namespace MikesRecipes.WebApi.Controllers;
 
-[ApiVersion(ApiVersions.V1Dot0)]
+[ApiVersion(Constants.WebApi.Version)]
 public class AuthController(IAuthenticationService authenticationService) : BaseController
 {
-    private readonly IAuthenticationService _authenticationService = authenticationService;
-
     [HttpPost("sign-up")]
     public async Task<IActionResult> Register(UserRegisterModel registerModel, CancellationToken cancellationToken)
     {
         var dto = registerModel.ToDTO();
-        var result = await _authenticationService.RegisterAsync(dto, cancellationToken);
-        return result.IsSuccess ? Ok() : BadRequest(result.Errors);
+        var result = await authenticationService.RegisterAsync(dto, cancellationToken);
+        return result.IsSuccess ? Ok("Email confirmation link was sent.") : BadRequest(result.Errors);
     }
 
     [HttpPost("sign-in")]
     public async Task<IActionResult> Login(UserLoginModel loginModel, CancellationToken cancellationToken)
     {
         var dto = loginModel.ToDTO();
-        var result = await _authenticationService.LoginAsync(dto, cancellationToken);
+        var result = await authenticationService.LoginAsync(dto, cancellationToken);
         return result.IsSuccess ? Ok(result.Value) : BadRequest(result.Errors);
     }
 
@@ -40,7 +37,7 @@ public class AuthController(IAuthenticationService authenticationService) : Base
     [HttpPost("refresh")]
     public async Task<IActionResult> RefreshTokens([Required]string refreshToken, CancellationToken cancellationToken)
     {
-        var result = await _authenticationService.RefreshTokensAsync(refreshToken, cancellationToken);
+        var result = await authenticationService.RefreshTokensAsync(refreshToken, cancellationToken);
         return result.IsSuccess ? Ok(result.Value) : BadRequest(result.Errors);
     }
 
@@ -57,9 +54,9 @@ public class AuthController(IAuthenticationService authenticationService) : Base
         }
 
         var result = string.IsNullOrWhiteSpace(newEmail) ?
-            await _authenticationService.ConfirmEmailAsync(new EmailConfirmationDTO(userId, token), cancellationToken)
+            await authenticationService.ConfirmEmailAsync(new EmailConfirmationDTO(userId, token), cancellationToken)
             :
-            await _authenticationService.ConfirmEmailChangeAsync(new EmailChangeConfirmationDTO(userId, token, newEmail), cancellationToken);
+            await authenticationService.ConfirmEmailChangeAsync(new EmailChangeConfirmationDTO(userId, token, newEmail), cancellationToken);
 
         return result.IsSuccess ? Ok() : BadRequest(result.Errors);
     }
@@ -70,14 +67,14 @@ public class AuthController(IAuthenticationService authenticationService) : Base
     [HttpDelete("revoke")]
     public async Task<IActionResult> RevokeRefreshToken(CancellationToken cancellationToken)
     {
-        var result = await _authenticationService.RevokeRefreshTokenAsync(cancellationToken);
+        var result = await authenticationService.RevokeRefreshTokenAsync(cancellationToken);
         return result.IsSuccess ? Ok() : BadRequest(result.Errors);
     }
 
     [HttpPost("resend-email-confirmation")]
     public async Task<IActionResult> ResendEmailConfirmation([Required][EmailAddress]string email, CancellationToken cancellationToken)
     {
-        var result = await _authenticationService.ResendEmailConfirmationAsync(email, cancellationToken);
+        var result = await authenticationService.ResendEmailConfirmationAsync(email, cancellationToken);
         return result.IsSuccess ? Ok() : BadRequest(result.Errors);
     }
 }

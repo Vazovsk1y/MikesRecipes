@@ -6,7 +6,7 @@ namespace MikesRecipes.WebApi.ViewModels;
 public record ByIncludedProductsFilterModel(
     [Required]
     [NotEmpty]
-    IEnumerable<Guid> ProductsIds,
+    IEnumerable<Guid> Products,
     [Range(0, int.MaxValue)]
     int OtherProductsCount
     );

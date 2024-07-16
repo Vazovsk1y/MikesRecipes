@@ -8,7 +8,7 @@ public class Ingredient
 
 	public required RecipeId RecipeId { get; init; }
 
-	public Product Product { get; set; }
+	public Product Product { get; init; }
 
-	public Recipe Recipe { get; set; }
+	public Recipe Recipe { get; init; }
 }

@@ -2,11 +2,9 @@
 
 namespace MikesRecipes.Domain.Models;
 
-public class Role : IdentityRole<Guid>
+public sealed class Role : IdentityRole<Guid>
 {
-    public override Guid Id { get => base.Id; }
-
-    public IEnumerable<UserRole> Users { get; set; } = new List<UserRole>();
+    public IEnumerable<UserRole> Users { get; init; } = new List<UserRole>();
 
     public Role()
     {

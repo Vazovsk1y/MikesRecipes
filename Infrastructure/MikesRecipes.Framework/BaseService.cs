@@ -7,21 +7,14 @@ using MikesRecipes.Framework.Interfaces;
 
 namespace MikesRecipes.Framework;
 
-public abstract class BaseService
+public abstract class BaseService(
+    IClock clock,
+    ILogger<BaseService> logger,
+    IServiceScopeFactory serviceScopeFactory)
 {
-    protected readonly IClock _clock;
-    protected readonly ILogger _logger;
-    protected readonly IServiceScopeFactory _serviceScopeFactory;
-
-    protected BaseService(
-        IClock clock, 
-        ILogger<BaseService> logger, 
-        IServiceScopeFactory serviceScopeFactory)
-    {
-        _clock = clock;
-        _logger = logger;
-        _serviceScopeFactory = serviceScopeFactory;
-    }
+    protected readonly IClock _clock = clock;
+    protected readonly ILogger _logger = logger;
+    protected readonly IServiceScopeFactory _serviceScopeFactory = serviceScopeFactory;
 
     protected Response Validate<T>(T @object) where T : notnull
     {
@@ -29,12 +22,7 @@ public abstract class BaseService
         var validator = scope.ServiceProvider.GetRequiredService<IValidator<T>>();
 
         var validationResult = validator.Validate(@object);
-        if (!validationResult.IsValid)
-        {
-            return Response.Failure(validationResult.Errors.Select(e => new Error(e.ErrorCode, e.ErrorMessage)));
-        }
-
-        return Response.Success();
+        return !validationResult.IsValid ? Response.Failure(validationResult.Errors.Select(e => new Error(e.ErrorCode, e.ErrorMessage))) : Response.Success();
     }
 
     protected Response Validate(params object[] objects)

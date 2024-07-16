@@ -1,10 +1,9 @@
-﻿using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.WebUtilities;
-using MikesRecipes.Auth.Contracts;
+﻿using Microsoft.AspNetCore.WebUtilities;
 using MikesRecipes.Domain.Models;
-using MikesRecipes.Services.Contracts;
 using MikesRecipes.WebApi.ViewModels;
 using System.Text;
+using MikesRecipes.Application.Contracts.Requests;
+using MikesRecipes.Auth.Contracts.Requests;
 
 namespace MikesRecipes.WebApi.Extensions;
 
@@ -12,7 +11,7 @@ public static class Mapper
 {
     public static ByIncludedProductsFilter ToDTO(this ByIncludedProductsFilterModel model)
     {
-        return new ByIncludedProductsFilter(model.ProductsIds.Select(e => new ProductId(e)), model.OtherProductsCount);
+        return new ByIncludedProductsFilter(model.Products.Select(e => new ProductId(e)), model.OtherProductsCount);
     }
 
     public static UserRegisterDTO ToDTO(this UserRegisterModel model)
@@ -23,11 +22,6 @@ public static class Mapper
     public static UserLoginDTO ToDTO(this UserLoginModel model)
     {
         return new UserLoginDTO(model.Email, model.Password);
-    }
-
-    public static TokensDTO ToDTO(this RefreshModel model)
-    {
-        return new TokensDTO(model.ExpiredJwtToken, model.RefreshToken);
     }
 
     public static ResetPasswordDTO? ToDTO(this ResetPasswordModel model)

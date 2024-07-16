@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using MikesRecipes.DAL;
+using MikesRecipes.DAL.PostgreSQL;
 using MikesRecipes.Domain.Models;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.AspNetCore.Identity;
@@ -8,25 +8,19 @@ using System.Text;
 using System.Reflection;
 using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using MikesRecipes.Auth.Implementation.Options;
 using System.IdentityModel.Tokens.Jwt;
 using Microsoft.IdentityModel.JsonWebTokens;
+using MikesRecipes.Auth.Implementation.Infrastructure;
 
 namespace MikesRecipes.Auth.Implementation.Extensions;
 
 public static class Registrator
 {
-    public static IServiceCollection AddAuth(this IServiceCollection services, IConfiguration configuration)
+    public static void AddAuth(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddScoped<AuthenticationProvider>();
-        services.AddScoped<IAuthenticationService>(e =>
-        {
-            return e.GetRequiredService<AuthenticationProvider>();
-        });
-        services.AddScoped<IAuthenticationState>(e =>
-        {
-            return e.GetRequiredService<AuthenticationProvider>();
-        });
+        services.AddScoped<IAuthenticationService>(e => e.GetRequiredService<AuthenticationProvider>());
+        services.AddScoped<IAuthenticationState>(e => e.GetRequiredService<AuthenticationProvider>());
 
         services.AddScoped<IEmailConfirmationsSender, EmailConfirmationsSender>();
         services.AddScoped<IUserProfileService, UserProfileService>();
@@ -38,6 +32,7 @@ public static class Registrator
             .ValidateDataAnnotations()
             .ValidateOnStart();
 
+        // TODO: How to obtain auth options in production mode?
         var authOptions = configuration.GetSection(AuthOptions.SectionName).Get<AuthOptions>()!;
         var identityOptions = authOptions.ToIdentityOptions();
 
@@ -84,7 +79,5 @@ public static class Registrator
                 ClockSkew = authOptions.Tokens.Jwt.ClockSkew,
             };
         });
-
-        return services;
     }
 }

@@ -1,24 +1,20 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
-using MikesRecipes.Auth.Implementation.Options;
 using MikesRecipes.Domain.Models;
 using System.Security.Claims;
+using MikesRecipes.Auth.Implementation.Infrastructure;
 
 namespace MikesRecipes.Auth.Implementation;
 
-public class AuthUserClaimsPrincipalFactory : UserClaimsPrincipalFactory<User, Role>
+public class AuthUserClaimsPrincipalFactory(
+    UserManager<User> userManager,
+    RoleManager<Role> roleManager,
+    IOptions<IdentityOptions> optionsAccessor,
+    IOptions<AuthOptions> authOptionsAccessor)
+    : UserClaimsPrincipalFactory<User, Role>(userManager, roleManager, optionsAccessor)
 {
-    private readonly AuthClaimsOptions _authClaimsIdentityOptions;
-
-    public AuthUserClaimsPrincipalFactory(
-        UserManager<User> userManager, 
-        RoleManager<Role> roleManager,
-        IOptions<IdentityOptions> optionsAccessor,
-        IOptions<AuthOptions> authOptionsAccessor) : base(userManager, roleManager, optionsAccessor)
-    {
-        _authClaimsIdentityOptions = authOptionsAccessor.Value.ClaimsIdentity;
-    }
+    private readonly AuthClaimsOptions _authClaimsIdentityOptions = authOptionsAccessor.Value.ClaimsIdentity;
 
     protected override async Task<ClaimsIdentity> GenerateClaimsAsync(User user)
     {
