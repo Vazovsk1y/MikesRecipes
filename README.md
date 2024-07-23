@@ -1,6 +1,6 @@
 # Recipe Finder API
 
-An ASP.NET Core Web API that provides recipes based on a list of provided products. This API allows users to find recipes that include specific ingredients, leveraging PostgreSQL for data storage and Entity Framework Core for data access.
+Web API that allows users to find recipes that include specific ingredients.
 
 ## Technologies used
 
