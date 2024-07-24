@@ -1,12 +1,6 @@
-# Recipe Finder API
+# MikesRecipes
 
 Web API that allows users to find recipes that include specific ingredients.
-
-## Technologies used
-
-- ASP.NET Core
-- Entity Framework Core
-- PostgreSQL
 
 ## Getting started
 
@@ -19,17 +13,23 @@ Web API that allows users to find recipes that include specific ingredients.
 
 1. Clone the repository:
     ```bash
-    git clone https://github.com/your-username/recipe-finder-api.git
-    cd recipe-finder-api
+    git clone https://github.com/Vazovsk1y/MikesRecipes.git
+    cd MikesRecipes
     ```
 
-2. Configure the PostgreSQL database:
+2. Configure the database:
     - Update the `appsettings.json` file with your PostgreSQL connection string.
 
 3. Run the API:
     ```bash
     dotnet run
     ```
+
+## Technologies used
+
+- ASP.NET Core
+- Entity Framework Core
+- PostgreSQL
 
 ## Notes
 *Authentication and authorization added for training purposes*
