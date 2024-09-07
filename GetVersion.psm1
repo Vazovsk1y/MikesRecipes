@@ -1,12 +1,20 @@
 ﻿Function GetVersionFromGitHubRef {
     Param (
-        # refs/tags/v* 
-        # refs/heads/release/*
+        # Last segment of ref path must be a valid semver string.
+        # Ex:
+        #   refs/tags/client/v[semver_string]
+        #   refs/heads/release/[semver_string]
+        #   refs/heads/release/client/v[semver_string]
+        #   refs/heads/release/v[semver_string]
+        #   refs/tags/v[semver_string]
+        #   refs/tags/[semver_string]
+        #   ...
         
         [string]$GitHubRef
     )
 
-    $segments = $GitHubRef -split '/'
+    $separator = '/'
+    $segments = $GitHubRef -split $separator
     $versionSegment = $segments[-1]
 
     Write-Host "Version segment: '$versionSegment'"
